@@ -1,0 +1,33 @@
+/**
+ * ACCESS QA Bot Styles
+ * Matches styling from old qa-bot implementation
+ */
+
+/* Hide notification bubbles (like old bot) */
+.rcb-chat-notification-badge,
+.rcb-notification-badge {
+  display: none !important;
+}
+
+/* Avatar styling in chat window - sharp corners, contained sizing */
+.rcb-chat-window .rcb-bot-avatar {
+  background-size: contain;
+  border-radius: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Toggle/floating button icon styling */
+.rcb-toggle-icon {
+  background-size: 62% !important;
+  background-position: calc(50% - 1px) calc(50% + 2px);
+  background-repeat: no-repeat;
+  background-color: transparent !important;
+}
+
+/* Ensure chat button icon displays correctly */
+.rcb-chat-button-icon {
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
