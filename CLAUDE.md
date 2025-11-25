@@ -9,6 +9,22 @@ This repository is a React/TypeScript wrapper around [@snf/qa-bot-core](https://
 2. A standalone JavaScript bundle (IIFE with Preact)
 3. TypeScript definitions
 
+## Related Repositories
+
+| Alias | Description |
+|-------|-------------|
+| **access-ci-ui** | UI component library for ACCESS websites - consumes qa-bot, will eventually consume this repo |
+| **qa-bot** (old) | Legacy qa-bot being replaced by this repo + qa-bot-core |
+| **qa-bot-core** (core) | Generic chatbot component library that this repo wraps |
+
+**Local paths (may vary by developer):**
+On this machine, all repos are peers in `access-ci/`:
+- `../access-ci-ui`
+- `../qa-bot`
+- `../qa-bot-core`
+
+**Relationship:** `access-ci-ui` → `access-qa-bot` (this repo) → `qa-bot-core`
+
 ## Build System
 
 **Technology Stack:**
