@@ -6,7 +6,6 @@
 import './styles/chatbot.css';
 
 export { AccessQABot as QABot, AccessQABot } from './components/AccessQABot';
-export { ThumbsUpThumbsDown } from './components/ThumbsUpThumbsDown';
 
 export type {
   AccessQABotProps as QABotProps,
