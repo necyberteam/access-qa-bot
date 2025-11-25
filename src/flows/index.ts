@@ -7,3 +7,4 @@
 export { createMainMenuFlow } from './main-menu-flow';
 export { createTicketFlow } from './ticket-flow';
 export { createAccessLoginFlow } from './access-login-flow';
+export { createResourceLoginFlow } from './resource-login-flow';

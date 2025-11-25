@@ -5,30 +5,22 @@
  */
 
 import type { TicketFormData } from '../utils/flow-context';
+import { resolveFlow, type FlowInput, type ChatState } from '../utils/flow-helpers';
 
 interface FlowParams {
   welcome: string;
   setTicketForm: (form: TicketFormData) => void;
 }
 
-interface ChatState {
-  userInput: string;
-}
-
-interface FlowStep {
-  message: string;
-  options: string[];
-  chatDisabled: boolean;
-  path: string | ((chatState: ChatState) => string);
-}
-
-type Flow = Record<string, FlowStep>;
-
 /**
  * Creates the main menu conversation flow
+ *
+ * Note: chatDisabled is auto-detected based on options:
+ * - Steps with options → buttons only (no text input)
+ * - Steps without options → text input enabled
  */
-export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams): Flow {
-  return {
+export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams) {
+  const flow: FlowInput = {
     start: {
       message: welcome,
       options: [
@@ -38,7 +30,6 @@ export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams): Flow
         // "Usage and performance of ACCESS resources (XDMoD)",
         // "Report a security issue",
       ],
-      chatDisabled: true,
       path: (chatState: ChatState) => {
         if (chatState.userInput === "Ask a question about ACCESS") {
           return "go_ahead_and_ask";
@@ -54,10 +45,10 @@ export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams): Flow
     // Transition to qa-bot-core's built-in Q&A flow
     go_ahead_and_ask: {
       message: "Go ahead and ask your question! I'll do my best to help.",
-      options: [],
-      chatDisabled: false, // Allow text input for Q&A
-      // Route to qa-bot-core's qa_loop which handles actual Q&A
+      // No options = text input enabled automatically
       path: "qa_loop",
     },
   };
+
+  return resolveFlow(flow);
 }
