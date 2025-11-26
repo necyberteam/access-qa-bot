@@ -2,8 +2,9 @@ import { forwardRef, useImperativeHandle, useRef, useState, useMemo, useEffect }
 import { QABot } from '@snf/qa-bot-core';
 import type { AccessQABotProps, AccessQABotRef } from '../types';
 import { API_CONFIG, BOT_CONFIG } from '../config/constants';
-import { createMainMenuFlow, createTicketFlow } from '../flows';
+import { createMainMenuFlow, createTicketFlow, createSecurityFlow, createMetricsFlow } from '../flows';
 import { setCurrentFormContext, type TicketFormData, type UserInfo } from '../utils/flow-context';
+import { getSessionId } from '../utils/session';
 import '../styles/chatbot.css';
 
 /**
@@ -68,7 +69,10 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
     const welcomeMessage = welcome ||
       (isLoggedIn ? BOT_CONFIG.WELCOME_MESSAGE : BOT_CONFIG.WELCOME_MESSAGE_LOGGED_OUT);
 
-    // Build custom flow by combining main menu + ticket flows
+    // Get session ID for metrics flow
+    const sessionId = useMemo(() => getSessionId(), []);
+
+    // Build custom flow by combining main menu + all specialized flows
     const customFlow = useMemo(() => {
       // Main menu provides top-level navigation
       const mainMenuFlow = createMainMenuFlow({
@@ -83,17 +87,42 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         userInfo,
       });
 
-      // Merge flows - main menu + all ticket flows
+      // Security flow for reporting security incidents
+      const securityFlow = createSecurityFlow({
+        ticketForm,
+        setTicketForm,
+        userInfo,
+      });
+
+      // Metrics flow for XDMoD questions
+      const metricsFlow = createMetricsFlow({
+        sessionId,
+        apiKey,
+      });
+
+      // Merge all flows
       return {
         ...mainMenuFlow,
         ...ticketFlows,
+        ...securityFlow,
+        ...metricsFlow,
       };
-    }, [welcomeMessage, ticketForm, userInfo]);
+    }, [welcomeMessage, ticketForm, userInfo, sessionId, apiKey]);
 
     return (
       <QABot
         ref={botRef}
-        // TODO: Once qa-bot-core adds isLoggedIn prop, use it instead of enabled
+        // TODO: Revisit enabled/chatDisabled defaults
+        // Currently: `enabled={isLoggedIn}` controls whether the Q&A AI feature works.
+        // However, the `chatDisabled` behavior in flows is confusing:
+        // - react-chatbotify does NOT reliably inherit from settings.chatInput.disabled
+        //   when transitioning between steps
+        // - We must explicitly set `chatDisabled: false` on text input steps
+        // - We must explicitly set `chatDisabled: true` on option-only steps
+        // Consider:
+        // 1. Adding an `isLoggedIn` prop to qa-bot-core that handles AI vs non-AI modes
+        // 2. Investigating why react-chatbotify doesn't honor settings defaults on step transitions
+        // 3. Whether qa-bot-core should apply smart defaults (auto-detect based on options)
         enabled={isLoggedIn}
 
         // API configuration

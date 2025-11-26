@@ -7,6 +7,7 @@
 
 import { createAccessLoginFlow } from './access-login-flow';
 import { createResourceLoginFlow } from './resource-login-flow';
+import { createGeneralHelpFlow } from './general-help-flow';
 import type { TicketFormData, UserInfo } from '../utils/flow-context';
 
 interface FlowParams {
@@ -26,9 +27,7 @@ export function createTicketFlow({ ticketForm, setTicketForm, userInfo }: FlowPa
   // Create individual ticket flows
   const accessLoginFlow = createAccessLoginFlow({ ticketForm, setTicketForm, userInfo });
   const resourceLoginFlow = createResourceLoginFlow({ ticketForm, setTicketForm, userInfo });
-
-  // Future: Add more ticket flows here
-  // const generalHelpFlow = createGeneralHelpFlow({ ticketForm, setTicketForm, userInfo });
+  const generalHelpFlow = createGeneralHelpFlow({ ticketForm, setTicketForm, userInfo });
 
   return {
     // Ticket type selection
@@ -39,7 +38,7 @@ export function createTicketFlow({ ticketForm, setTicketForm, userInfo }: FlowPa
         "Logging into a resource",
         "Another question",
       ],
-      chatDisabled: true, // Options only
+      chatDisabled: true,
       function: (chatState: ChatState) => {
         setTicketForm(prev => ({ ...prev, ticketType: chatState.userInput }));
       },
@@ -49,8 +48,7 @@ export function createTicketFlow({ ticketForm, setTicketForm, userInfo }: FlowPa
         } else if (chatState.userInput === "Logging into a resource") {
           return "resource_help";
         } else if (chatState.userInput === "Another question") {
-          // TODO: Implement general help flow
-          return "help_ticket"; // For now, stay on selection
+          return "general_help_summary_subject";
         }
         return "help_ticket";
       },
@@ -59,6 +57,6 @@ export function createTicketFlow({ ticketForm, setTicketForm, userInfo }: FlowPa
     // Combine all ticket flows
     ...accessLoginFlow,
     ...resourceLoginFlow,
-    // Future: ...generalHelpFlow,
+    ...generalHelpFlow,
   };
 }

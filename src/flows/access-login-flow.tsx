@@ -89,6 +89,7 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 1: Describe the issue (text input)
     access_login_description: {
       message: "Describe your login issue.",
+      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({
@@ -170,6 +171,7 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 6: Email (text input)
     access_login_email: {
       message: "What is your email?",
+      chatDisabled: false,
       validateTextInput: validateEmail,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
@@ -186,6 +188,7 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 7: Name (text input)
     access_login_name: {
       message: "What is your name?",
+      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, name: chatState.userInput });
@@ -200,6 +203,7 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 8: ACCESS ID (text input, optional)
     access_login_accessid: {
       message: "What is your ACCESS ID? (Optional - press Enter to skip)",
+      chatDisabled: false,
       validateTextInput: createOptionalFieldValidator(),
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();

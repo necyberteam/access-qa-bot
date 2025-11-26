@@ -25,9 +25,8 @@ export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams) {
       options: [
         "Ask a question about ACCESS",
         "Open a Help Ticket",
-        // Future options:
-        // "Usage and performance of ACCESS resources (XDMoD)",
-        // "Report a security issue",
+        "Usage and performance of ACCESS resources (XDMoD)",
+        "Report a security issue",
       ],
       chatDisabled: true, // Options only, no text input
       path: (chatState: ChatState) => {
@@ -37,6 +36,12 @@ export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams) {
           // Reset form data when starting a new ticket
           setTicketForm({});
           return "help_ticket";
+        } else if (chatState.userInput === "Usage and performance of ACCESS resources (XDMoD)") {
+          return "metrics_intro";
+        } else if (chatState.userInput === "Report a security issue") {
+          // Reset form data when starting a security report
+          setTicketForm({});
+          return "security_incident";
         }
         return "start";
       },
@@ -45,7 +50,7 @@ export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams) {
     // Transition to qa-bot-core's built-in Q&A flow
     go_ahead_and_ask: {
       message: "Go ahead and ask your question! I'll do my best to help.",
-      // No chatDisabled = uses default (enabled)
+      chatDisabled: false,
       path: "qa_loop",
     },
   };

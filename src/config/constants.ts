@@ -4,6 +4,11 @@ export const API_CONFIG = {
   QA_ENDPOINT: import.meta.env.VITE_API_ENDPOINT || 'https://access-ai-grace1-external.ccs.uky.edu/access/chat/api/',
   RATING_ENDPOINT: import.meta.env.VITE_RATING_ENDPOINT || 'https://access-ai-grace1-external.ccs.uky.edu/access/chat/rating/',
 
+  // Metrics/XDMoD API endpoints
+  METRICS_API_ENDPOINT: import.meta.env.VITE_METRICS_API_ENDPOINT || 'https://access-ai-grace1-external.ccs.uky.edu/access/xdmod/chat/api/',
+  METRICS_RATING_ENDPOINT: import.meta.env.VITE_METRICS_RATING_ENDPOINT || 'https://access-ai-grace1-external.ccs.uky.edu/access/xdmod/chat/rating/',
+  METRICS_QUESTIONS_URL: 'https://metrics.access-ci.org/qa_bot_faq',
+
   // Netlify functions for JIRA/JSM
   NETLIFY_BASE_URL: import.meta.env.VITE_NETLIFY_BASE_URL || 'https://access-jsm-api.netlify.app',
 

@@ -19,7 +19,11 @@ export interface TicketFormData {
   identityProvider?: string;
   browser?: string;
 
-  // Resource fields
+  // Resource fields (affiliated login)
+  resource?: string;
+  userIdResource?: string;
+
+  // Resource fields (general help)
   involvesResource?: string;
   resourceDetails?: string;
   userIdAtResource?: string;
