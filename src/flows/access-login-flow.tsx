@@ -32,9 +32,7 @@ interface ChatState {
 /**
  * Creates the ACCESS login help ticket flow
  *
- * chatDisabled behavior:
- * - Steps with options: set chatDisabled: true (buttons only)
- * - Steps without options: omit chatDisabled (defaults to enabled for text input)
+ * Note: chatDisabled is handled automatically by applyFlowSettings() in AccessQABot.
  */
 export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, userInfo }: FlowParams) {
   // Submission handler - stores result for success message
@@ -79,7 +77,6 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
                "• Check if you're using the correct identity provider\n\n" +
                "Would you like to submit a help ticket for ACCESS login issues?",
       options: ["Yes, let's create a ticket", "Back to Main Menu"],
-      chatDisabled: true,
       path: (chatState: ChatState) =>
         chatState.userInput === "Yes, let's create a ticket"
           ? "access_login_description"
@@ -89,7 +86,6 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 1: Describe the issue (text input)
     access_login_description: {
       message: "Describe your login issue.",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({
@@ -107,7 +103,6 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     access_login_identity: {
       message: "Which identity provider were you using?",
       options: ["ACCESS", "Github", "Google", "Institution", "Microsoft", "ORCID", "Other"],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, identityProvider: chatState.userInput });
@@ -119,7 +114,6 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     access_login_browser: {
       message: "Which browser were you using?",
       options: ["Chrome", "Firefox", "Edge", "Safari", "Other"],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, browser: chatState.userInput });
@@ -131,7 +125,6 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     access_login_attachment: {
       message: "Would you like to attach a screenshot?",
       options: ["Yes", "No"],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, wantsAttachment: chatState.userInput });
@@ -154,7 +147,6 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
       message: "Please upload your screenshot.",
       component: fileUploadElement,
       options: ["Continue"],
-      chatDisabled: true,
       function: () => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, uploadConfirmed: true });
@@ -171,7 +163,6 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 6: Email (text input)
     access_login_email: {
       message: "What is your email?",
-      chatDisabled: false,
       validateTextInput: validateEmail,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
@@ -188,7 +179,6 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 7: Name (text input)
     access_login_name: {
       message: "What is your name?",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, name: chatState.userInput });
@@ -203,7 +193,6 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 8: ACCESS ID (text input, optional)
     access_login_accessid: {
       message: "What is your ACCESS ID? (Optional - press Enter to skip)",
-      chatDisabled: false,
       validateTextInput: createOptionalFieldValidator(),
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
@@ -235,7 +224,6 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
                `Would you like to submit this ticket?`;
       },
       options: ["Submit Ticket", "Back to Main Menu"],
-      chatDisabled: true,
       renderHtml: ["BOT", "USER"],
       function: async (chatState: ChatState) => {
         if (chatState.userInput === "Submit Ticket") {
@@ -261,7 +249,6 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
     access_login_success: {
       message: () => generateSuccessMessage(submissionResult, 'ACCESS login ticket'),
       options: ["Back to Main Menu"],
-      chatDisabled: true,
       renderHtml: ["BOT"],
       path: "start",
     },

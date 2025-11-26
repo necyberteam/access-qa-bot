@@ -38,7 +38,6 @@ export function createTicketFlow({ ticketForm, setTicketForm, userInfo }: FlowPa
         "Logging into a resource",
         "Another question",
       ],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         setTicketForm(prev => ({ ...prev, ticketType: chatState.userInput }));
       },

@@ -97,7 +97,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
     // Step 1: Summary (text input)
     security_incident: {
       message: "You're reporting a security incident. Please provide a brief summary of the security concern.",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({
@@ -115,7 +114,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
     security_priority: {
       message: "What is the priority level of this security incident?",
       options: ["Critical", "High", "Medium", "Low"],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, priority: chatState.userInput.toLowerCase() });
@@ -126,7 +124,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
     // Step 3: Description (text input)
     security_description: {
       message: "Please provide a detailed description of the security incident or concern.",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, description: chatState.userInput });
@@ -138,7 +135,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
     security_attachment: {
       message: "Do you have any files (screenshots, logs, etc.) that would help with this security incident?",
       options: ["Yes", "No"],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, wantsAttachment: chatState.userInput });
@@ -152,7 +148,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       message: "Please upload your files.",
       component: fileUploadElement,
       options: ["Continue"],
-      chatDisabled: true,
       function: () => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, uploadConfirmed: true });
@@ -196,7 +191,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
     // Step 7: Email (text input, conditional)
     security_email: {
       message: "What is your email address?",
-      chatDisabled: false,
       validateTextInput: validateEmail,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
@@ -213,7 +207,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
     // Step 8: Name (text input, conditional)
     security_name: {
       message: "What is your name?",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, name: chatState.userInput });
@@ -229,7 +222,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
     // Step 9: ACCESS ID (text input, optional)
     security_accessid: {
       message: "What is your ACCESS ID? (Optional - press Enter to skip)",
-      chatDisabled: false,
       validateTextInput: createOptionalFieldValidator(),
       function: (chatState: ChatState) => {
         const finalInput = processOptionalInput(chatState.userInput);
@@ -271,7 +263,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
           `Would you like to submit this security incident report?`;
       },
       options: ["Submit Security Report", "Back to Main Menu"],
-      chatDisabled: true,
       function: async (chatState: ChatState) => {
         if (chatState.userInput === "Submit Security Report") {
           const currentForm = getCurrentTicketForm() as TicketFormData;
@@ -313,7 +304,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
         return generateSecuritySuccessMessage(submissionResult);
       },
       options: ["Back to Main Menu"],
-      chatDisabled: true,
       renderHtml: ["BOT"],
       path: "start",
     },

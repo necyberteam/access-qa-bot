@@ -38,7 +38,6 @@ export function createMetricsFlow({ sessionId, apiKey }: FlowParams) {
     metrics_intro: {
       message: `Please type your question about usage and performance metrics (XDMoD) below. You can see some <a target="_blank" href="${API_CONFIG.METRICS_QUESTIONS_URL}">examples here</a>.`,
       renderHtml: ["BOT"],
-      chatDisabled: false,
       path: "metrics_loop",
     },
 
@@ -121,7 +120,6 @@ export function createMetricsFlow({ sessionId, apiKey }: FlowParams) {
         }
         return ["👍 Helpful", "👎 Not helpful"];
       },
-      chatDisabled: false,
       path: "metrics_loop",
     },
   };

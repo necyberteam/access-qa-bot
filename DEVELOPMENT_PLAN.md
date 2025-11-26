@@ -16,63 +16,68 @@
 | **Phase 8: Main Menu** | Navigation | Routes between Q&A, tickets, metrics, security. All 4 options wired up. |
 | **Infrastructure** | Build system, types, API | ESM/UMD/Standalone builds, TypeScript definitions, ticket API with Netlify proxy. |
 | **Footer Fix** | qa-bot-core bug fix | Fixed footer flash issue - moved config from useEffect to useMemo. |
-
-### 🔄 In Progress
-
-| Item | Description | Status |
-|------|-------------|--------|
-| **chatDisabled Pattern** | Must explicitly set on every step | Workaround in place. See Architecture Notes below. |
-
-### ❌ Remaining (Blocked on qa-bot-core)
-
-| Item | Description | Priority |
-|------|-------------|----------|
-| **Login State Refactor** | Replace `enabled` with `isLoggedIn` + `requireLoginForQA` | High |
+| **Login State Refactor** | Replace `enabled` with `isLoggedIn` | Implemented in qa-bot-core v0.2.3-beta.4. See `local-notes/ARCHITECTURE_PROPOSAL_LOGIN_STATE.md` |
+| **chatDisabled Pattern** | Auto-set via `applyFlowSettings` | Implemented in qa-bot-core v0.2.3-beta.6. Removed 55 explicit statements from flows. |
 
 ---
 
-## Next: qa-bot-core Refactor
+## Completed: Login State Refactor
 
 **See:** `local-notes/ARCHITECTURE_PROPOSAL_LOGIN_STATE.md`
 
-### Summary
-
-Replace confusing `enabled` prop with two orthogonal props:
+### Final Design
 
 | Prop | Type | Default | Purpose |
 |------|------|---------|---------|
-| `isLoggedIn` | `boolean \| undefined` | `undefined` | Informational: header icon, passed to flows |
-| `requireLoginForQA` | `boolean` | `false` | Behavioral: gate Q&A when logged out |
+| `isLoggedIn` | `boolean` | **required** | Login state: header icon + Q&A gating |
+| `allowAnonAccess` | `boolean` | `false` | Escape hatch: bypass Q&A gating |
 
-### Changes Required
+### What Changed
 
-**qa-bot-core:**
-1. Remove `enabled` prop
-2. Add `isLoggedIn` prop (informational)
-3. Add `requireLoginForQA` prop (behavioral)
-4. Update header icon logic
-5. Update Q&A flow to check `requireLoginForQA && isLoggedIn === false`
-6. Remove global input disable logic
+**qa-bot-core (v0.2.3-beta.4):**
+- Removed `enabled` prop
+- Added required `isLoggedIn` prop
+- Added optional `allowAnonAccess` prop
+- Q&A gated when `isLoggedIn === false` (unless `allowAnonAccess`)
+- Input never globally disabled
 
-**access-qa-bot (this repo):**
-1. Change `enabled={isLoggedIn}` → `isLoggedIn={isLoggedIn}` + `requireLoginForQA={true}`
-2. Remove TODO comment about enabled/isLoggedIn confusion
+**access-qa-bot:**
+- Changed `enabled={isLoggedIn}` → `isLoggedIn={isLoggedIn}`
+- Gating is automatic, no second prop needed
+
+---
+
+## Completed: chatDisabled Pattern
+
+**Problem:** react-chatbotify does not reliably fall back to `settings.chatInput.disabled` when transitioning between steps. If a step has `chatDisabled: true` and the next step omits it, the input stays disabled.
+
+**Solution:** `applyFlowSettings` utility in qa-bot-core v0.2.3-beta.6.
+
+### Usage
+
+```typescript
+import { applyFlowSettings } from '@snf/qa-bot-core';
+
+const customFlow = useMemo(() => {
+  const rawFlow = { ...flow1, ...flow2 };
+  return applyFlowSettings(rawFlow, { disableOnOptions: true });
+}, [deps]);
+```
+
+### Behavior
+
+When `disableOnOptions: true`:
+- Steps with `options` or `checkboxes` → `chatDisabled: true`
+- Steps without → `chatDisabled: false`
+- Steps with explicit `chatDisabled` → unchanged
+
+### Result
+
+Removed 55 explicit `chatDisabled` statements from access-qa-bot flows. Only one dynamic `chatDisabled` function remains (in security-flow.tsx for conditional contact info).
 
 ---
 
 ## Architecture Notes
-
-### chatDisabled Pattern
-
-**Problem:** react-chatbotify does not reliably fall back to `settings.chatInput.disabled` when transitioning between steps. If a step has `chatDisabled: true` and the next step omits it, the input stays disabled.
-
-**Solution:** Explicitly set `chatDisabled` on every step:
-- Steps with `options` or `checkboxes` → `chatDisabled: true`
-- Steps with text input → `chatDisabled: false`
-
-**References:**
-- [react-chatbotify Complex Form Example](https://react-chatbotify.com/docs/v2/examples/complex_form)
-- [react-chatbotify Basic Form Example](https://react-chatbotify.com/docs/v2/examples/basic_form)
 
 ### Language/Strings Source
 
@@ -119,5 +124,6 @@ src/
 │   ├── validation.ts        # Input validators
 │   └── session.ts           # Session ID management
 └── types/
-    └── index.ts             # TypeScript definitions
+    ├── index.ts             # TypeScript definitions
+    └── qa-bot-core.d.ts     # Type declarations for @snf/qa-bot-core
 ```

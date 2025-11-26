@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useRef, useState, useMemo, useEffect } from 'react';
-import { QABot } from '@snf/qa-bot-core';
+import { QABot, applyFlowSettings } from '@snf/qa-bot-core';
 import type { AccessQABotProps, AccessQABotRef } from '../types';
 import { API_CONFIG, BOT_CONFIG } from '../config/constants';
 import { createMainMenuFlow, createTicketFlow, createSecurityFlow, createMetricsFlow } from '../flows';
@@ -100,30 +100,23 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         apiKey,
       });
 
-      // Merge all flows
-      return {
+      // Merge all flows and apply settings
+      const rawFlow = {
         ...mainMenuFlow,
         ...ticketFlows,
         ...securityFlow,
         ...metricsFlow,
       };
+
+      // Auto-set chatDisabled based on whether step has options/checkboxes
+      return applyFlowSettings(rawFlow, { disableOnOptions: true });
     }, [welcomeMessage, ticketForm, userInfo, sessionId, apiKey]);
 
     return (
       <QABot
         ref={botRef}
-        // TODO: Revisit enabled/chatDisabled defaults
-        // Currently: `enabled={isLoggedIn}` controls whether the Q&A AI feature works.
-        // However, the `chatDisabled` behavior in flows is confusing:
-        // - react-chatbotify does NOT reliably inherit from settings.chatInput.disabled
-        //   when transitioning between steps
-        // - We must explicitly set `chatDisabled: false` on text input steps
-        // - We must explicitly set `chatDisabled: true` on option-only steps
-        // Consider:
-        // 1. Adding an `isLoggedIn` prop to qa-bot-core that handles AI vs non-AI modes
-        // 2. Investigating why react-chatbotify doesn't honor settings defaults on step transitions
-        // 3. Whether qa-bot-core should apply smart defaults (auto-detect based on options)
-        enabled={isLoggedIn}
+        // Login state - Q&A is gated when false, tickets/security work regardless
+        isLoggedIn={isLoggedIn}
 
         // API configuration
         apiKey={apiKey}

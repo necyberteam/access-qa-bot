@@ -15,6 +15,14 @@ declare module '@snf/qa-bot-core' {
     qaEndpoint: string;
     welcomeMessage: string;
 
+    /**
+     * Whether the user is currently logged in.
+     * - Required: this bot expects login state to be tracked
+     * - Controls header icon (login button when false, user icon when true)
+     * - When false, Q&A is gated by default (shows login prompt)
+     */
+    isLoggedIn: boolean;
+
     // Optional props
     ratingEndpoint?: string;
     primaryColor?: string;
@@ -27,10 +35,17 @@ declare module '@snf/qa-bot-core' {
     footerText?: string;
     footerLink?: string;
     tooltipText?: string;
-    enabled?: boolean;
     loginUrl?: string;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+
+    /**
+     * Allow anonymous access to Q&A even when not logged in.
+     * - Default: false (Q&A is gated when isLoggedIn is false)
+     * - Set to true to bypass login gating for Q&A
+     * - Does not affect custom flows (tickets, security, etc.)
+     */
+    allowAnonAccess?: boolean;
 
     /**
      * Custom flow steps to merge with the built-in Q&A flow.
@@ -48,6 +63,27 @@ declare module '@snf/qa-bot-core' {
   }
 
   export const QABot: ForwardRefExoticComponent<QABotProps & RefAttributes<BotControllerHandle>>;
+
+  // Flow utilities
+  export interface FlowSettingsOptions {
+    /**
+     * Automatically set chatDisabled based on step type:
+     * - Steps with options/checkboxes → chatDisabled: true
+     * - Steps without → chatDisabled: false
+     *
+     * Only applies to steps that don't already have chatDisabled explicitly set.
+     */
+    disableOnOptions?: boolean;
+  }
+
+  /**
+   * Apply settings/transformations to a flow object.
+   *
+   * @param flow - The flow configuration to process
+   * @param options - Settings to apply
+   * @returns A new flow object with settings applied
+   */
+  export function applyFlowSettings(flow: Flow, options: FlowSettingsOptions): Flow;
 
   // File upload components and utilities
   export interface FileUploadComponentProps {

@@ -394,7 +394,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 1: Title/Summary (text input)
     general_help_summary_subject: {
       message: "Provide a short title for your ticket.",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({
@@ -423,7 +422,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
         "XDMoD Question",
         "Some Other Question",
       ],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, category: chatState.userInput });
@@ -434,7 +432,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 3: Description (text input)
     general_help_description: {
       message: "Please describe your issue.",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, description: chatState.userInput });
@@ -446,7 +443,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     general_help_attachment: {
       message: "Would you like to attach a file to your ticket?",
       options: ["Yes", "No"],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, wantsAttachment: chatState.userInput });
@@ -460,7 +456,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       message: "Please upload your file.",
       component: fileUploadElement,
       options: ["Continue"],
-      chatDisabled: true,
       function: () => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, uploadConfirmed: true });
@@ -472,7 +467,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     general_help_resource: {
       message: "Does your problem involve an ACCESS Resource?",
       options: ["Yes", "No"],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, involvesResource: chatState.userInput.toLowerCase() });
@@ -485,7 +479,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     general_help_resource_details: {
       message: "Please select the ACCESS Resource involved with your issue:",
       options: RESOURCES,
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, resourceDetails: chatState.userInput });
@@ -496,7 +489,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 8: User ID at resource (conditional, optional)
     general_help_user_id_at_resource: {
       message: "What is your User ID at the selected resource(s)? (Optional - press Enter to skip)",
-      chatDisabled: false,
       validateTextInput: createOptionalFieldValidator(),
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
@@ -513,7 +505,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
         min: 0,
         max: 5,
       },
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, keywords: chatState.userInput });
@@ -529,7 +520,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 10: Additional keywords (conditional, text input)
     general_help_additional_keywords: {
       message: "Please enter additional keywords, separated by commas:",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         const currentKeywords = currentForm.keywords || [];
@@ -561,7 +551,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     general_help_priority: {
       message: "Please select a priority for your issue:",
       options: ["Lowest", "Low", "Medium", "High", "Highest"],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, priority: chatState.userInput.toLowerCase() });
@@ -578,7 +567,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 12: Email (text input, conditional)
     general_help_email: {
       message: "What is your email address?",
-      chatDisabled: false,
       validateTextInput: validateEmail,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
@@ -595,7 +583,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 13: Name (text input, conditional)
     general_help_name: {
       message: "What is your name?",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, name: chatState.userInput });
@@ -610,7 +597,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     // Step 14: ACCESS ID (text input, optional)
     general_help_accessid: {
       message: "What is your ACCESS ID? (Optional - press Enter to skip)",
-      chatDisabled: false,
       validateTextInput: createOptionalFieldValidator(),
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
@@ -652,7 +638,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
                `Would you like to submit this ticket?`;
       },
       options: ["Submit Ticket", "Back to Main Menu"],
-      chatDisabled: true,
       function: async (chatState: ChatState) => {
         if (chatState.userInput === "Submit Ticket") {
           const currentForm = getCurrentTicketForm();
@@ -686,7 +671,6 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
     general_help_success: {
       message: () => generateSuccessMessage(submissionResult, 'support ticket'),
       options: ["Back to Main Menu"],
-      chatDisabled: true,
       renderHtml: ["BOT"],
       path: "start",
     },

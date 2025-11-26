@@ -28,7 +28,6 @@ export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams) {
         "Usage and performance of ACCESS resources (XDMoD)",
         "Report a security issue",
       ],
-      chatDisabled: true, // Options only, no text input
       path: (chatState: ChatState) => {
         if (chatState.userInput === "Ask a question about ACCESS") {
           return "go_ahead_and_ask";
@@ -50,7 +49,6 @@ export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams) {
     // Transition to qa-bot-core's built-in Q&A flow
     go_ahead_and_ask: {
       message: "Go ahead and ask your question! I'll do my best to help.",
-      chatDisabled: false,
       path: "qa_loop",
     },
   };

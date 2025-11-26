@@ -76,7 +76,6 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
                "• Check <a href=\"https://operations.access-ci.org/infrastructure_news_view\">System Status News</a> to see if the resource is undergoing maintenance\n\n" +
                "Would you like to submit a help ticket for resource provider login issues?",
       options: ["Yes, let's create a ticket", "Back to Main Menu"],
-      chatDisabled: true,
       renderHtml: ["BOT"],
       path: (chatState: ChatState) =>
         chatState.userInput === "Yes, let's create a ticket"
@@ -108,7 +107,6 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
         "Ranch",
         "Stampede3",
       ],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, resource: chatState.userInput });
@@ -119,7 +117,6 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
     // Step 2: User ID at resource (text input)
     resource_login_userid: {
       message: "What is your user ID at the resource?",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, userIdResource: chatState.userInput });
@@ -130,7 +127,6 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
     // Step 3: Describe the issue (text input)
     resource_login_description: {
       message: "Please describe the issue you're having logging in.",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({
@@ -148,7 +144,6 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
     resource_login_attachment: {
       message: "Would you like to attach a screenshot?",
       options: ["Yes", "No"],
-      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, wantsAttachment: chatState.userInput });
@@ -171,7 +166,6 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       message: "Please upload your screenshot.",
       component: fileUploadElement,
       options: ["Continue"],
-      chatDisabled: true,
       function: () => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, uploadConfirmed: true });
@@ -188,7 +182,6 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
     // Step 6: Email (text input)
     resource_login_email: {
       message: "What is your email?",
-      chatDisabled: false,
       validateTextInput: validateEmail,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
@@ -205,7 +198,6 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
     // Step 7: Name (text input)
     resource_login_name: {
       message: "What is your name?",
-      chatDisabled: false,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, name: chatState.userInput });
@@ -220,7 +212,6 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
     // Step 8: ACCESS ID (text input, optional)
     resource_login_accessid: {
       message: "What is your ACCESS ID? (Optional - press Enter to skip)",
-      chatDisabled: false,
       validateTextInput: createOptionalFieldValidator(),
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
@@ -252,7 +243,6 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
                `Would you like to submit this ticket?`;
       },
       options: ["Submit Ticket", "Back to Main Menu"],
-      chatDisabled: true,
       function: async (chatState: ChatState) => {
         if (chatState.userInput === "Submit Ticket") {
           const currentForm = getCurrentTicketForm();
@@ -278,7 +268,6 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
     resource_login_success: {
       message: () => generateSuccessMessage(submissionResult, 'resource login ticket'),
       options: ["Back to Main Menu"],
-      chatDisabled: true,
       renderHtml: ["BOT"],
       path: "start",
     },
