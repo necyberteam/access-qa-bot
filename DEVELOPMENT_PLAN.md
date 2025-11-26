@@ -1,5 +1,50 @@
 # Development Plan: ACCESS QA Bot Wrapper
 
+## 🌅 Next Session (Tomorrow Morning)
+
+### Step 1: Move flow-helpers to qa-bot-core
+**Location:** `qa-bot-core` repo
+
+**What to move:**
+- `resolveFlow()` function
+- `resolveStep()` function
+- Types: `FlowInput`, `FlowStep`, `FlowStepInput`, `ChatState`, `FlowPath`
+
+**Consider:** Should the smart defaults be baked into the core's flow processing instead of requiring wrapper developers to call `resolveFlow()`? (Option B from discussion)
+
+**Files in core to modify:**
+- `src/index.ts` (export new helpers)
+- New: `src/utils/flow-helpers.ts` or integrate into existing flow logic
+
+### Step 2: Publish qa-bot-core beta
+```bash
+# In qa-bot-core repo
+npm version prerelease --preid=beta
+npm publish --tag beta
+```
+
+### Step 3: Update access-qa-bot to use core helpers
+```bash
+# In access-qa-bot repo
+npm install @snf/qa-bot-core@beta
+```
+
+**Then:**
+- Remove `src/utils/flow-helpers.ts` from this repo
+- Update imports in all flows to use `@snf/qa-bot-core`
+- Verify everything still works
+
+### Step 4: Manual architecture review
+- [ ] Review flow structure - is it clean and maintainable?
+- [ ] Review types - are they exported correctly from core?
+- [ ] Review wrapper developer experience - is it easy to add new flows?
+- [ ] Check for any duplication between repos
+
+### Step 5: Continue with remaining flows
+After architecture is solid, proceed to **General Help Flow** (see below).
+
+---
+
 ## Current Status
 
 ### ✅ Completed
@@ -7,22 +52,17 @@
 | Phase | Description | Notes |
 |-------|-------------|-------|
 | **Phase 1: User Context** | User info in flows | Props flow through `AccessQABot` → `UserInfo` → `flow-context.ts`. Skips form fields when data available. |
-| **Phase 2: File Attachments** | Upload component | Implemented in `@snf/qa-bot-core` (better architecture). Imported as `FileUploadComponent`. |
+| **Phase 2: File Attachments** | Upload component | Implemented in `@snf/qa-bot-core`. Imported as `FileUploadComponent`. |
 | **Phase 4: ACCESS Login Flow** | 10-step ticket flow | Full flow with file upload, validation, summary, JIRA submission. |
+| **Phase 4: Resource Login Flow** | 12-step ticket flow | Full flow for affiliated resource login issues. Uses `loginProvider` ticket type. |
 | **Phase 6: Main Menu** | Navigation | Routes between Q&A and ticket flows. |
 | **Infrastructure** | Build system, types, API | ESM/UMD/Standalone builds, TypeScript definitions, ticket API with Netlify proxy. |
-
-### ⏳ In Progress
-
-| Item | Status |
-|------|--------|
-| Ticket type selection | UI exists, but only ACCESS Login is wired up |
+| **Flow Helpers** | Smart defaults | `resolveFlow()` auto-detects `chatDisabled` based on options. (To be moved to core) |
 
 ### ❌ Remaining
 
 | Phase | Description | Priority |
 |-------|-------------|----------|
-| **Resource Login Flow** | 10-step flow for resource login issues | High |
 | **General Help Flow** | Multi-step general help ticket | High |
 | **Security Incident Flow** | 8-step security reporting | Medium |
 | **Metrics/XDMoD Flow** | Usage and performance queries | Low |
@@ -30,37 +70,7 @@
 
 ---
 
-## Next Up: Resource Login Flow
-
-**Goal:** Implement ticket flow for users having trouble logging into an affiliated resource (not ACCESS itself).
-
-**Request Type ID:** 31 (LOGIN_PROVIDER)
-
-**Steps:**
-1. Describe the issue (text input)
-2. Which resource? (dropdown or text)
-3. Resource username (optional)
-4. Identity provider used
-5. Browser used
-6. Attachment? (yes/no)
-7. File upload (conditional)
-8. Email (if not provided via props)
-9. Name (if not provided via props)
-10. ACCESS ID (optional)
-11. Summary + confirmation
-12. Success/error message
-
-**Files to create:**
-- `src/flows/resource-login-flow.tsx`
-
-**Files to modify:**
-- `src/flows/ticket-flow.ts` (wire up "Logging into a resource" option)
-
-**Estimated time:** 3-4 hours (reuses ACCESS login patterns)
-
----
-
-## Then: General Help Flow
+## Next Flow: General Help Flow
 
 **Goal:** Implement the general-purpose help ticket flow.
 
@@ -85,7 +95,7 @@
 **Files to modify:**
 - `src/flows/ticket-flow.ts` (wire up "Another question" option)
 
-**Estimated time:** 4-5 hours
+**Estimated time:** 3-4 hours (patterns now well established)
 
 ---
 
@@ -173,35 +183,41 @@
 
 | Phase | Estimate |
 |-------|----------|
-| Resource Login Flow | 3-4 hours |
-| General Help Flow | 4-5 hours |
+| Move flow-helpers to core + publish | 1-2 hours |
+| General Help Flow | 3-4 hours |
 | Security Incident Flow | 2-3 hours |
 | Metrics/XDMoD Flow | 3-4 hours |
 | Feedback Flow | 3-4 hours |
 | Testing & Documentation | 6-8 hours |
-| **Total Remaining** | **~22-28 hours** |
+| **Total Remaining** | **~19-25 hours** |
 
 ---
 
 ## Architecture Notes
 
+### Flow Helpers (To Be Moved to Core)
+Currently in `src/utils/flow-helpers.ts`. Provides:
+- `resolveFlow(flow)` - applies smart defaults to all steps
+- `resolveStep(step)` - auto-detects `chatDisabled`:
+  - Has `options` or `checkboxes` → `chatDisabled: true`
+  - No options → `chatDisabled: false`
+
+**Decision pending:** Should this be baked into qa-bot-core's flow processing (automatic) or remain as an explicit helper function (opt-in)?
+
 ### User Context Implementation
-The original plan called for a `UserContext.tsx` provider. Instead, we used a simpler approach:
-- Props (`userEmail`, `userName`, `accessId`) passed to `AccessQABot`
+Props (`userEmail`, `userName`, `accessId`) passed to `AccessQABot`:
 - `UserInfo` type defined in `flow-context.ts`
 - `getCurrentFormWithUserInfo()` merges user info with form state
 - Flows check for existing user data and skip collection steps
 
-This is less boilerplate and works well since user info only flows one direction (down).
-
 ### File Attachments
-Moved to `@snf/qa-bot-core` for reuse across projects:
+In `@snf/qa-bot-core`:
 - `FileUploadComponent` - React component with drag-drop
 - `filesToBase64()` - Converts files for API submission
 - Screenshot capture built-in
 
 ### Ticket API Infrastructure
-Already complete in `src/utils/ticket-api.ts`:
+Complete in `src/utils/ticket-api.ts`:
 - `submitTicket()` - High-level submission function
 - `prepareApiSubmission()` - Formats data for JSM API
 - `sendToProxy()` - Calls Netlify proxy endpoint
@@ -209,7 +225,4 @@ Already complete in `src/utils/ticket-api.ts`:
 - Request type IDs defined for all ticket types
 
 ### isLoggedIn vs enabled
-Deferred architectural discussion. Current implementation:
-- Wrapper accepts `isLoggedIn` from consumers
-- Translates to `enabled` for qa-bot-core
-- Works with current qa-bot-core implementation
+Deferred. Wrapper accepts `isLoggedIn`, translates to `enabled` for qa-bot-core.
