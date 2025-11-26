@@ -5,7 +5,7 @@
  * { success: boolean, promptContent?: string, promptDuration?: number, promptType?: string }
  */
 
-interface ValidationResult {
+export interface ValidationResult {
   success: boolean;
   promptContent?: string;
   promptDuration?: number;

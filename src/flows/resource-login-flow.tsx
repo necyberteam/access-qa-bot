@@ -16,7 +16,6 @@ import {
 } from '../utils/flow-context';
 import { submitTicket, generateSuccessMessage, type TicketSubmissionResult } from '../utils/ticket-api';
 import { validateEmail, createOptionalFieldValidator, processOptionalInput } from '../utils/validation';
-import { resolveFlow, type FlowInput, type ChatState } from '../utils/flow-helpers';
 
 interface FlowParams {
   ticketForm: TicketFormData;
@@ -24,12 +23,17 @@ interface FlowParams {
   userInfo: UserInfo;
 }
 
+interface ChatState {
+  userInput: string;
+  prevPath?: string;
+}
+
 /**
  * Creates the Resource Login help ticket flow
  *
- * Note: chatDisabled is auto-detected based on options:
- * - Steps with options → buttons only (no text input)
- * - Steps without options → text input enabled
+ * chatDisabled behavior:
+ * - Steps with options: set chatDisabled: true (buttons only)
+ * - Steps without options: omit chatDisabled (defaults to enabled for text input)
  */
 export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm, userInfo }: FlowParams) {
   // Submission handler - stores result for success message
@@ -65,7 +69,7 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
     />
   );
 
-  const flow: FlowInput = {
+  return {
     // Entry point - provides context and asks if user wants to create ticket
     resource_help: {
       message: "If you're having trouble logging into an ACCESS-affiliated resource, here are some common issues:\n\n" +
@@ -75,13 +79,14 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
                "• Some resources require SSH keys or two-factor authentication\n\n" +
                "Would you like to submit a help ticket for resource login issues?",
       options: ["Yes, let's create a ticket", "Back to Main Menu"],
+      chatDisabled: true,
       path: (chatState: ChatState) =>
         chatState.userInput === "Yes, let's create a ticket"
           ? "resource_login_description"
           : "start",
     },
 
-    // Step 1: Describe the issue
+    // Step 1: Describe the issue (text input)
     resource_login_description: {
       message: "Describe your login issue.",
       function: (chatState: ChatState) => {
@@ -97,7 +102,7 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       path: "resource_login_which_resource",
     },
 
-    // Step 2: Which resource
+    // Step 2: Which resource (options)
     resource_login_which_resource: {
       message: "Which resource are you trying to access?",
       options: [
@@ -112,6 +117,7 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
         "Stampede3 (TACC)",
         "Other",
       ],
+      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, resourceName: chatState.userInput });
@@ -119,7 +125,7 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       path: "resource_login_username",
     },
 
-    // Step 3: Username at resource (optional)
+    // Step 3: Username at resource (text input, optional)
     resource_login_username: {
       message: "What is your username at this resource? (Optional - press Enter to skip)",
       validateTextInput: createOptionalFieldValidator(),
@@ -130,10 +136,11 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       path: "resource_login_identity",
     },
 
-    // Step 4: Identity provider
+    // Step 4: Identity provider (options)
     resource_login_identity: {
       message: "Which identity provider were you using?",
       options: ["ACCESS", "Github", "Google", "Institution", "Microsoft", "ORCID", "Other"],
+      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, identityProvider: chatState.userInput });
@@ -141,10 +148,11 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       path: "resource_login_browser",
     },
 
-    // Step 5: Browser
+    // Step 5: Browser (options)
     resource_login_browser: {
       message: "Which browser were you using?",
       options: ["Chrome", "Firefox", "Edge", "Safari", "SSH/Terminal", "Other"],
+      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, browser: chatState.userInput });
@@ -152,10 +160,11 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       path: "resource_login_attachment",
     },
 
-    // Step 6: Ask about attachment
+    // Step 6: Ask about attachment (options)
     resource_login_attachment: {
       message: "Would you like to attach a screenshot or error log?",
       options: ["Yes", "No"],
+      chatDisabled: true,
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, wantsAttachment: chatState.userInput });
@@ -173,11 +182,12 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       },
     },
 
-    // Step 7: File upload (conditional)
+    // Step 7: File upload (component + Continue button)
     resource_login_upload: {
       message: "Please upload your screenshot or error log.",
       component: fileUploadElement,
       options: ["Continue"],
+      chatDisabled: true,
       function: () => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, uploadConfirmed: true });
@@ -191,7 +201,7 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       },
     },
 
-    // Step 8: Email (if not provided)
+    // Step 8: Email (text input)
     resource_login_email: {
       message: "What is your email?",
       validateTextInput: validateEmail,
@@ -207,7 +217,7 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       },
     },
 
-    // Step 9: Name (if not provided)
+    // Step 9: Name (text input)
     resource_login_name: {
       message: "What is your name?",
       function: (chatState: ChatState) => {
@@ -221,7 +231,7 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       },
     },
 
-    // Step 10: ACCESS ID (optional)
+    // Step 10: ACCESS ID (text input, optional)
     resource_login_accessid: {
       message: "What is your ACCESS ID? (Optional - press Enter to skip)",
       validateTextInput: createOptionalFieldValidator(),
@@ -232,7 +242,7 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       path: "resource_login_summary",
     },
 
-    // Step 11: Summary and confirmation
+    // Step 11: Summary and confirmation (options)
     resource_login_summary: {
       message: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
@@ -257,6 +267,7 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
                `Would you like to submit this ticket?`;
       },
       options: ["Submit Ticket", "Back to Main Menu"],
+      chatDisabled: true,
       renderHtml: ["BOT", "USER"],
       function: async (chatState: ChatState) => {
         if (chatState.userInput === "Submit Ticket") {
@@ -280,14 +291,13 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
         chatState.userInput === "Submit Ticket" ? "resource_login_success" : "start",
     },
 
-    // Step 12: Success message
+    // Step 12: Success message (options)
     resource_login_success: {
       message: () => generateSuccessMessage(submissionResult, 'resource login ticket'),
       options: ["Back to Main Menu"],
+      chatDisabled: true,
       renderHtml: ["BOT"],
       path: "start",
     },
   };
-
-  return resolveFlow(flow);
 }

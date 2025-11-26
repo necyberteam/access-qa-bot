@@ -8,7 +8,6 @@
 import { createAccessLoginFlow } from './access-login-flow';
 import { createResourceLoginFlow } from './resource-login-flow';
 import type { TicketFormData, UserInfo } from '../utils/flow-context';
-import { resolveFlow, type FlowInput, type ChatState, type Flow } from '../utils/flow-helpers';
 
 interface FlowParams {
   ticketForm: TicketFormData;
@@ -16,14 +15,14 @@ interface FlowParams {
   userInfo: UserInfo;
 }
 
+interface ChatState {
+  userInput: string;
+}
+
 /**
  * Creates the combined ticket flow with type selection and all ticket types
- *
- * Note: chatDisabled is auto-detected based on options:
- * - Steps with options → buttons only (no text input)
- * - Steps without options → text input enabled
  */
-export function createTicketFlow({ ticketForm, setTicketForm, userInfo }: FlowParams): Flow {
+export function createTicketFlow({ ticketForm, setTicketForm, userInfo }: FlowParams) {
   // Create individual ticket flows
   const accessLoginFlow = createAccessLoginFlow({ ticketForm, setTicketForm, userInfo });
   const resourceLoginFlow = createResourceLoginFlow({ ticketForm, setTicketForm, userInfo });
@@ -31,7 +30,7 @@ export function createTicketFlow({ ticketForm, setTicketForm, userInfo }: FlowPa
   // Future: Add more ticket flows here
   // const generalHelpFlow = createGeneralHelpFlow({ ticketForm, setTicketForm, userInfo });
 
-  const ticketSelection: FlowInput = {
+  return {
     // Ticket type selection
     help_ticket: {
       message: "What is your help ticket related to?",
@@ -40,6 +39,7 @@ export function createTicketFlow({ ticketForm, setTicketForm, userInfo }: FlowPa
         "Logging into a resource",
         "Another question",
       ],
+      chatDisabled: true, // Options only
       function: (chatState: ChatState) => {
         setTicketForm(prev => ({ ...prev, ticketType: chatState.userInput }));
       },
@@ -55,12 +55,8 @@ export function createTicketFlow({ ticketForm, setTicketForm, userInfo }: FlowPa
         return "help_ticket";
       },
     },
-  };
 
-  return {
-    // Resolve the ticket selection step
-    ...resolveFlow(ticketSelection),
-    // Combine all ticket flows (already resolved)
+    // Combine all ticket flows
     ...accessLoginFlow,
     ...resourceLoginFlow,
     // Future: ...generalHelpFlow,
