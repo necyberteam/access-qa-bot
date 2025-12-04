@@ -1,5 +1,16 @@
 # Development Plan: ACCESS QA Bot Wrapper
 
+## Quick Resume
+
+**When returning to this project:**
+1. Run `npm run dev` to test locally
+2. If all flows work → ready for release (see Release Checklist below)
+3. Key docs: `CLAUDE.md` (project overview), `publishing.md` (npm workflow)
+
+**Current state:** All flows implemented. Using qa-bot-core@0.2.3-beta.6. Ready for testing.
+
+---
+
 ## Current Status
 
 ### ✅ Completed
@@ -18,6 +29,7 @@
 | **Footer Fix** | qa-bot-core bug fix | Fixed footer flash issue - moved config from useEffect to useMemo. |
 | **Login State Refactor** | Replace `enabled` with `isLoggedIn` | Implemented in qa-bot-core v0.2.3-beta.4. See `local-notes/ARCHITECTURE_PROPOSAL_LOGIN_STATE.md` |
 | **chatDisabled Pattern** | Auto-set via `applyFlowSettings` | Implemented in qa-bot-core v0.2.3-beta.6. Removed 55 explicit statements from flows. |
+| **Documentation** | Updated CLAUDE.md, created publishing.md | CLAUDE.md reflects current state. publishing.md has npm workflow. |
 
 ---
 
@@ -98,6 +110,62 @@ Complete in `src/utils/ticket-api.ts`:
 The old qa-bot uses "affiliated" for resource login. We renamed to "resource" for clarity:
 - Old: `affiliated_help`, `affiliated_login_*`
 - New: `resource_help`, `resource_login_*`
+
+---
+
+## Release & Transition Plan
+
+### Package Continuity
+
+This repo replaces `qa-bot` but publishes to the **same npm package** (`@snf/access-qa-bot`):
+
+| Repo | Version Range | Status |
+|------|---------------|--------|
+| `qa-bot` (old) | v0.x - v2.x | To be deprecated |
+| `access-qa-bot` (this) | v3.0.0+ | Active |
+
+From consumers' perspective (e.g., `access-ci-ui`), this is just a version bump.
+
+### Release Checklist
+
+| Step | Status | Command/Action |
+|------|--------|----------------|
+| 1. Test locally | ⏳ Pending | `npm run dev`, verify all flows work |
+| 2. qa-bot-core stable | ⏳ Pending | Publish stable release in qa-bot-core repo |
+| 3. Update dependency | ⏳ Pending | `npm install @snf/qa-bot-core@latest` (after stable) |
+| 4. Publish this repo | ⏳ Pending | Follow `publishing.md` workflow |
+| 5. Deprecate old repo | ⏳ Pending | See below |
+
+**See `publishing.md`** for detailed npm publishing workflow.
+
+### Deprecating the Old qa-bot Repo
+
+After v3.0.0 is published and verified:
+
+1. **Update old repo's README.md:**
+   ```markdown
+   # ⚠️ DEPRECATED
+
+   This repository has been superseded by a rewrite.
+
+   **New repository:** [access-qa-bot](https://github.com/necyberteam/access-qa-bot)
+
+   The npm package `@snf/access-qa-bot` continues from v3.0.0 in the new repo.
+
+   - For v2.x and earlier: This repo (archived)
+   - For v3.0.0+: See [access-qa-bot](https://github.com/necyberteam/access-qa-bot)
+   ```
+
+2. **Archive the repo on GitHub** (Settings → Archive)
+
+3. **Old versions remain available** - `npm install @snf/access-qa-bot@2.7.3` still works
+
+### access-ci-ui Integration
+
+After publishing v3.0.0:
+- Update dependency: `npm install @snf/access-qa-bot@latest`
+- Props change: `enabled` → `isLoggedIn` (breaking change, documented)
+- Test in Drupal environment
 
 ---
 
