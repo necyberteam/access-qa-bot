@@ -42,9 +42,9 @@ npm run type-check     # TypeScript validation
 ```
 
 **Build Outputs:**
-- `dist/access-qa-bot.js` - ESM (738KB, externalizes React)
-- `dist/access-qa-bot.umd.cjs` - CommonJS/UMD (567KB, externalizes React)
-- `dist/access-qa-bot.standalone.js` - IIFE (349KB, bundles Preact)
+- `dist/access-qa-bot.js` - ESM (externalizes React)
+- `dist/access-qa-bot.umd.cjs` - CommonJS/UMD (externalizes React)
+- `dist/access-qa-bot.standalone.js` - IIFE (bundles Preact)
 - `dist/index.d.ts` - TypeScript definitions
 
 ## Architecture
@@ -58,33 +58,46 @@ AccessQABot (wrapper)
 
 ### Key Files
 - `src/components/AccessQABot.tsx` - Main wrapper component
-- `src/components/ThumbsUpThumbsDown.tsx` - Feedback component
 - `src/lib.tsx` - React component exports
 - `src/standalone.tsx` - Standalone JavaScript API
 - `src/config/constants.ts` - Environment variables and defaults
-- `src/utils/api.ts` - Q&A and rating API calls
+- `src/utils/ticket-api.ts` - JIRA ticket submission
+- `src/utils/flow-context.ts` - Form state management across flow steps
 - `src/utils/session.ts` - Session ID management (localStorage)
 
-### API Compatibility Layer
+### Flow Files
+- `src/flows/main-menu-flow.ts` - Top-level navigation
+- `src/flows/ticket-flow.ts` - Ticket type selection
+- `src/flows/access-login-flow.tsx` - ACCESS login issues
+- `src/flows/resource-login-flow.tsx` - Resource provider login issues
+- `src/flows/general-help-flow.tsx` - General help tickets
+- `src/flows/security-flow.tsx` - Security incident reporting
+- `src/flows/metrics-flow.ts` - XDMoD/metrics queries
 
-**Public API (access-ci-ui compatible):**
-- Accepts `isLoggedIn` prop
-- Accepts `userEmail`, `userName`, `accessId` (not yet used, for future flows)
-- Provides `addMessage()` via ref
-- Supports both `open`/`onOpenChange` controlled mode and `defaultOpen` uncontrolled mode
+### Props
 
-**Internal Translation:**
-- Currently maps `isLoggedIn` → `enabled` when calling qa-bot-core
-- TODO: Once qa-bot-core adds `isLoggedIn` prop, use it directly
+**Required:**
+- `isLoggedIn: boolean` - User login state (controls header icon + Q&A gating)
+
+**User Context (optional):**
+- `userEmail?: string` - Pre-populates email fields in ticket flows
+- `userName?: string` - Pre-populates name fields
+- `accessId?: string` - ACCESS username
+
+**Configuration (optional):**
+- `apiKey?: string` - API key for Q&A endpoint
+- `open?: boolean` - Controlled open state
+- `onOpenChange?: (open: boolean) => void` - Callback for open state changes
 
 ## Environment Configuration
 
-Environment variables use `VITE_` prefix (not `REACT_APP_`):
+Environment variables use `VITE_` prefix:
 
 ```env
 VITE_API_ENDPOINT=https://access-ai-grace1-external.ccs.uky.edu/access/chat/api/
 VITE_RATING_ENDPOINT=https://access-ai-grace1-external.ccs.uky.edu/access/chat/rating/
 VITE_NETLIFY_BASE_URL=https://access-jsm-api.netlify.app
+VITE_METRICS_API_ENDPOINT=https://your-metrics-endpoint/
 VITE_API_KEY=demo-key
 ```
 
@@ -95,18 +108,22 @@ Copy `.env.example` to `.env.local` for local development.
 **Implemented:**
 - ✅ Basic wrapper with API compatibility
 - ✅ Q&A flow with ACCESS APIs
-- ✅ ThumbsUpThumbsDown feedback component
+- ✅ Main menu navigation (Q&A, Tickets, Metrics, Security)
+- ✅ Ticket flows: ACCESS Login, Resource Login, General Help
+- ✅ Security incident reporting
+- ✅ Metrics/XDMoD integration
+- ✅ File attachment support (via qa-bot-core)
+- ✅ User context integration (email, name, ACCESS ID pre-populate forms)
+- ✅ Login state refactor (`isLoggedIn` prop, Q&A gating)
+- ✅ `applyFlowSettings` utility for chatDisabled automation
 - ✅ Session ID persistence
 - ✅ Three build outputs (ESM, UMD, Standalone)
 - ✅ TypeScript definitions
-- ✅ Standalone qaBot() function
 
-**Not Yet Implemented (Future):**
-- ❌ Ticket creation flows (General, ACCESS Login, Resource Login)
-- ❌ Security incident reporting
-- ❌ Metrics/XDMoD integration
-- ❌ File attachment support
-- ❌ User context integration (userEmail, userName, accessId props accepted but not used)
+**Pending:**
+- ⏳ Testing with qa-bot-core@0.2.3-beta.6
+- ⏳ Stable release (both repos)
+- ⏳ access-ci-ui integration (Drupal)
 
 ## Development Notes
 
@@ -115,9 +132,26 @@ Copy `.env.example` to `.env.local` for local development.
 - **Type Definitions:** Manual declarations in `src/types/qa-bot-core.d.ts` until upstream provides them
 - **Preact Aliasing:** Standalone build replaces React with Preact via Vite resolve aliases
 - **Session Management:** Uses localStorage with key `access-qa-bot-session-id`
+- **Flow Settings:** Use `applyFlowSettings(flow, { disableOnOptions: true })` to auto-set `chatDisabled`
 
-## Known Issues
+## Key Patterns
 
-- qa-bot-core currently only has `enabled` prop, not `isLoggedIn` (proposal submitted to add it)
-- userEmail, userName, accessId props are accepted but not yet integrated into flows
-- TypeScript version mismatch warning (project uses 5.9.3, API Extractor uses 5.4.2)
+### chatDisabled Pattern
+react-chatbotify doesn't reliably reset `chatDisabled` between steps. Solution: use `applyFlowSettings` from qa-bot-core:
+
+```typescript
+import { applyFlowSettings } from '@snf/qa-bot-core';
+
+const customFlow = useMemo(() => {
+  const rawFlow = { ...flow1, ...flow2 };
+  return applyFlowSettings(rawFlow, { disableOnOptions: true });
+}, [deps]);
+```
+
+### User Context
+User info flows through: `AccessQABot` props → `UserInfo` object → `flow-context.ts` → individual flow steps (skips fields when data available).
+
+## See Also
+
+- `DEVELOPMENT_PLAN.md` - Detailed implementation status and architecture notes
+- `local-notes/` - Git-ignored local documentation (architecture proposals, next steps)
