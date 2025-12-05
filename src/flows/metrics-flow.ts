@@ -120,6 +120,9 @@ export function createMetricsFlow({ sessionId, apiKey }: FlowParams) {
         }
         return ["👍 Helpful", "👎 Not helpful"];
       },
+      // Rating is optional - keep input enabled so user can type next question
+      // without clicking a feedback button
+      chatDisabled: false,
       path: "metrics_loop",
     },
   };

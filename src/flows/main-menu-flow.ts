@@ -9,6 +9,7 @@ import type { TicketFormData } from '../utils/flow-context';
 interface FlowParams {
   welcome: string;
   setTicketForm: (form: TicketFormData) => void;
+  isLoggedIn: boolean;
 }
 
 interface ChatState {
@@ -18,7 +19,7 @@ interface ChatState {
 /**
  * Creates the main menu conversation flow
  */
-export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams) {
+export function createMainMenuFlow({ welcome, setTicketForm, isLoggedIn }: FlowParams) {
   return {
     start: {
       message: welcome,
@@ -30,7 +31,9 @@ export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams) {
       ],
       path: (chatState: ChatState) => {
         if (chatState.userInput === "Ask a question about ACCESS") {
-          return "go_ahead_and_ask";
+          // If logged in, show prompt step that waits for actual question
+          // If logged out, go directly to qa_loop which shows login gate
+          return isLoggedIn ? "go_ahead_and_ask" : "qa_loop";
         } else if (chatState.userInput === "Open a Help Ticket") {
           // Reset form data when starting a new ticket
           setTicketForm({});
@@ -46,7 +49,7 @@ export function createMainMenuFlow({ welcome, setTicketForm }: FlowParams) {
       },
     },
 
-    // Transition to qa-bot-core's built-in Q&A flow
+    // Transition step for logged-in users - absorbs button click, waits for real question
     go_ahead_and_ask: {
       message: "Go ahead and ask your question! I'll do my best to help.",
       path: "qa_loop",

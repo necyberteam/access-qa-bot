@@ -36,6 +36,10 @@ function App() {
         // apiKey will default to env var
         embedded={false}
         welcome="Hello! How can I help you today?"
+        // Mock user data when logged in (simulates Drupal passing user context)
+        userEmail={isLoggedIn ? "testuser@university.edu" : undefined}
+        userName={isLoggedIn ? "Test User" : undefined}
+        accessId={isLoggedIn ? "testuser123" : undefined}
       />
     </div>
   );

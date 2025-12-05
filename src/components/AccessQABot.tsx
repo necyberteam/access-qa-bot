@@ -78,6 +78,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       const mainMenuFlow = createMainMenuFlow({
         welcome: welcomeMessage,
         setTicketForm,
+        isLoggedIn,
       });
 
       // Ticket flows handle ticket creation
@@ -110,7 +111,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
       // Auto-set chatDisabled based on whether step has options/checkboxes
       return applyFlowSettings(rawFlow, { disableOnOptions: true });
-    }, [welcomeMessage, ticketForm, userInfo, sessionId, apiKey]);
+    }, [welcomeMessage, ticketForm, userInfo, sessionId, apiKey, isLoggedIn]);
 
     return (
       <QABot
