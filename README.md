@@ -1,8 +1,9 @@
-# ACCESS QA Bot
+# ACCESS Q&A Bot
 
-A React wrapper around [@snf/qa-bot-core](https://github.com/necyberteam/qa-bot-core) with ACCESS-specific functionality.
+A React wrapper around [@snf/qa-bot-core](https://github.com/necyberteam/qa-bot-core) that adds ACCESS-specific functionality. This package serves two purposes:
 
-This package is designed to be used as both a standalone component and as a library consumed by access-ci-ui.
+1. **Production use**: The official Q&A bot for ACCESS websites
+2. **Reference implementation**: An example of how to build organization-specific wrappers around qa-bot-core
 
 ## Installation
 
@@ -10,101 +11,297 @@ This package is designed to be used as both a standalone component and as a libr
 npm install @snf/access-qa-bot
 ```
 
-## Usage
+## Features
+
+- **🤖 Intelligent Q&A**: AI-powered responses about ACCESS resources and services
+- **🎫 Support Tickets**: Create help tickets for general support, ACCESS login issues, and resource provider login problems
+- **🔒 Security Reporting**: Report security incidents with priority levels and file attachments
+- **📊 Metrics/XDMoD**: Query usage and performance data for ACCESS resources
+- **📎 File Attachments**: Upload screenshots, logs, and documents with tickets
+- **👤 User Pre-population**: Auto-fill forms with user info when logged in
+- **🎨 Theming**: Customizable colors and branding via qa-bot-core
+- **♿ Accessibility**: Full screen reader support and keyboard navigation
+- **📱 Responsive**: Works on desktop and mobile devices
+
+### Display Modes
+
+- **Floating Mode** (default): Chat button that opens/closes a floating window
+- **Embedded Mode**: Always visible, embedded in page content
+
+## Available Flows
+
+### 🤖 Q&A Flow
+- Ask questions about ACCESS resources, services, and documentation
+- AI-powered responses with HTML and Markdown formatting
+- Thumbs up/down feedback after each response
+- Requires login (gated by default)
+
+### 🎫 Support Ticket Flows
+- **General Help**: Any ACCESS-related issues
+- **ACCESS Login**: Problems logging into access-ci.org
+- **Resource Login**: Problems logging into resource providers (Anvil, Expanse, etc.)
+- All flows support file attachments and integrate with JSM ProForma
+
+### 🔒 Security Incident Flow
+- Report security issues, vulnerabilities, and incidents
+- Priority levels: Critical, High, Medium, Low
+- Direct routing to ACCESS cybersecurity team
+- File attachments for evidence
+
+### 📊 Metrics/XDMoD Flow
+- Query usage and performance data
+- Interactive Q&A loop with feedback buttons
+
+---
+
+## Integration Methods
 
 ### React Component
 
+For React applications, import and use the component directly:
+
 ```tsx
-import { QABot } from '@snf/access-qa-bot';
+import React, { useRef, useState } from 'react';
+import { AccessQABot } from '@snf/access-qa-bot';
 
 function MyApp() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const botRef = useRef();
 
   return (
-    <QABot
-      isLoggedIn={isLoggedIn}
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      apiKey="your-api-key"
-      userEmail="user@example.com"
-      userName="John Doe"
-      accessId="ABC123"
-      embedded={false}
-      welcome="Hello! How can I help you today?"
-    />
+    <div className="app">
+      <h1>My Application</h1>
+
+      <button onClick={() => botRef.current?.addMessage("Hello!")}>
+        Send Message
+      </button>
+
+      <button onClick={() => setChatOpen(true)}>
+        Open Chat
+      </button>
+
+      <AccessQABot
+        ref={botRef}
+        isLoggedIn={isLoggedIn}
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        userEmail="user@example.com"
+        userName="Jane Doe"
+        accessId="jdoe"
+        apiKey={process.env.VITE_API_KEY}
+      />
+    </div>
   );
 }
 ```
 
+#### React Props
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `isLoggedIn` | boolean | `false` | User login state (gates Q&A, shows login/user icon) |
+| `apiKey` | string | `"demo-key"` | API key for authentication |
+| `embedded` | boolean | `false` | Embedded or floating mode |
+| `loginUrl` | string | `"/login"` | Login redirect URL |
+| `open` | boolean | - | Control chat window (floating mode) |
+| `onOpenChange` | function | - | Chat window state callback |
+| `welcome` | string | - | Custom welcome message |
+| `userEmail` | string | - | Pre-populate email in forms |
+| `userName` | string | - | Pre-populate name in forms |
+| `accessId` | string | - | Pre-populate ACCESS ID in forms |
+
+#### Ref Methods
+
+```tsx
+const botRef = useRef<AccessQABotRef>(null);
+
+// Add a message programmatically
+botRef.current?.addMessage("Hello from code!");
+```
+
+---
+
 ### Standalone JavaScript
 
-```html
-<div id="qa-bot"></div>
-<script src="https://unpkg.com/@snf/access-qa-bot@3.0.0/dist/access-qa-bot.standalone.js"></script>
-<script>
-  const bot = qaBot({
-    target: document.getElementById('qa-bot'),
-    isLoggedIn: true,
-    apiKey: 'your-api-key',
-    embedded: false
-  });
+For plain HTML/JS, use the self-contained standalone bundle:
 
-  // Programmatic control
-  bot.openChat();
-  bot.addMessage('Hello!');
-  bot.setBotIsLoggedIn(false);
+```html
+<script src="https://unpkg.com/@snf/access-qa-bot@3.0.0/dist/access-qa-bot.standalone.js"></script>
+
+<div id="qa-bot"></div>
+
+<script>
+const bot = qaBot({
+  target: document.getElementById('qa-bot'),
+  isLoggedIn: false,
+  embedded: false,
+  welcome: "Welcome! How can I help you today?",
+  defaultOpen: false,
+});
 </script>
 ```
 
-## API
+#### Programmatic Control
 
-### Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `isLoggedIn` | `boolean` | `false` | User authentication state |
-| `apiKey` | `string` | - | API key for backend services |
-| `open` | `boolean` | - | Control chat window visibility |
-| `onOpenChange` | `(open: boolean) => void` | - | Callback when window state changes |
-| `embedded` | `boolean` | `false` | Embedded vs floating mode |
-| `loginUrl` | `string` | `"/login"` | Login redirect URL |
-| `userEmail` | `string` | - | Pre-populate user email |
-| `userName` | `string` | - | Pre-populate user name |
-| `accessId` | `string` | - | Pre-populate ACCESS ID |
-| `welcome` | `string` | - | Custom welcome message |
-| `defaultOpen` | `boolean` | - | Initial open state (standalone only) |
-
-### Ref Methods
-
-```tsx
-const botRef = useRef<QABotRef>(null);
-
-// Add message programmatically
-botRef.current?.addMessage('Hello from code!');
-```
-
-### Standalone Controller
+The `qaBot()` function returns a controller object:
 
 ```javascript
-const bot = qaBot(config);
+const bot = qaBot({
+  target: document.getElementById('qa-bot'),
+  isLoggedIn: false,
+});
 
-bot.addMessage(message: string)
-bot.setBotIsLoggedIn(status: boolean)
-bot.openChat()
-bot.closeChat()
-bot.toggleChat()
-bot.destroy()
+// Add messages
+bot.addMessage("Hello World!");
+
+// Update login state
+bot.setBotIsLoggedIn(true);
+
+// Control chat window (floating mode only)
+bot.openChat();
+bot.closeChat();
+bot.toggleChat();
+
+// Cleanup
+bot.destroy();
 ```
+
+#### Standalone Config
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `target` | HTMLElement | **required** | DOM element to render into |
+| `apiKey` | string | `"demo-key"` | API key for authentication |
+| `defaultOpen` | boolean | `false` | Initial chat window state |
+| `embedded` | boolean | `false` | Embedded or floating mode |
+| `isLoggedIn` | boolean | `false` | User login state |
+| `loginUrl` | string | `"/login"` | Login redirect URL |
+| `welcome` | string | - | Welcome message |
+| `userEmail` | string | - | Pre-populate email |
+| `userName` | string | - | Pre-populate name |
+| `accessId` | string | - | Pre-populate ACCESS ID |
+
+---
+
+### CDN Usage
+
+#### unpkg (npm-based)
+
+```html
+<script src="https://unpkg.com/@snf/access-qa-bot@3.0.0/dist/access-qa-bot.standalone.js"></script>
+```
+
+#### jsdelivr (GitHub-based)
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/necyberteam/access-qa-bot@v3.0.0/dist/access-qa-bot.standalone.js"></script>
+```
+
+---
+
+## Building Your Own Wrapper
+
+This repository demonstrates the **wrapper pattern** for extending qa-bot-core with organization-specific functionality. Use this as a reference for building your own wrapper.
+
+### Architecture
+
+```
+YourWrapper (this pattern)
+  └── QABot (from @snf/qa-bot-core)
+      └── react-chatbotify
+```
+
+### What qa-bot-core Provides
+
+- Chat UI (floating/embedded modes)
+- Q&A flow with feedback
+- Login state management
+- Theming and branding props
+- `customFlow` prop for extending functionality
+
+### What Your Wrapper Adds
+
+- Organization-specific flows (tickets, security, etc.)
+- Integration with your backend services (JIRA, APIs)
+- Custom form validation and state management
+- Environment-specific configuration
+
+### Key Files to Study
+
+| File | Purpose |
+|------|---------|
+| `src/components/AccessQABot.tsx` | Main wrapper component - combines flows, passes props to core |
+| `src/flows/*.ts` | Custom conversation flows using react-chatbotify format |
+| `src/utils/flow-context.ts` | Form state management across flow steps |
+| `src/utils/ticket-api.ts` | Backend integration (JIRA ticket submission) |
+| `src/standalone.tsx` | Standalone JS API wrapper |
+| `src/config/constants.ts` | Environment config and defaults |
+
+### Creating Custom Flows
+
+Flows use the [react-chatbotify](https://react-chatbotify.com/) format:
+
+```typescript
+import { Flow } from 'react-chatbotify';
+
+export function createMyFlow(): Flow {
+  return {
+    my_start: {
+      message: "Hello! What would you like to do?",
+      options: ["Option A", "Option B"],
+      path: (params) => {
+        if (params.userInput === "Option A") return "option_a_step";
+        return "option_b_step";
+      },
+    },
+    option_a_step: {
+      message: "You chose A!",
+      path: "end",
+    },
+    // ... more steps
+  };
+}
+```
+
+### Combining Flows
+
+In your wrapper component:
+
+```tsx
+import { QABot, applyFlowSettings } from '@snf/qa-bot-core';
+
+const customFlow = useMemo(() => {
+  const flow1 = createMenuFlow();
+  const flow2 = createTicketFlow();
+  const flow3 = createMyCustomFlow();
+
+  const combined = { ...flow1, ...flow2, ...flow3 };
+
+  // Auto-set chatDisabled based on options/checkboxes
+  return applyFlowSettings(combined, { disableOnOptions: true });
+}, [dependencies]);
+
+return (
+  <QABot
+    isLoggedIn={isLoggedIn}
+    customFlow={customFlow}
+    // ... other props
+  />
+);
+```
+
+---
 
 ## Environment Variables
 
-Create a `.env.local` file based on `.env.example`:
+Create `.env.local` from `.env.example`:
 
 ```env
-VITE_API_ENDPOINT=https://your-api-endpoint.com/api/
-VITE_RATING_ENDPOINT=https://your-api-endpoint.com/rating/
-VITE_NETLIFY_BASE_URL=https://access-jsm-api.netlify.app
+VITE_API_ENDPOINT=https://your-qa-api.com/api/
+VITE_RATING_ENDPOINT=https://your-qa-api.com/rating/
+VITE_NETLIFY_BASE_URL=https://your-ticket-api.netlify.app
+VITE_METRICS_API_ENDPOINT=https://your-metrics-api.com/
 VITE_API_KEY=your_api_key_here
 ```
 
@@ -117,28 +314,41 @@ npm install
 # Start dev server
 npm run dev
 
-# Build library
+# Build all outputs (ESM, UMD, standalone)
 npm run build
+
+# Build library only (ESM, UMD)
+npm run build:lib
 
 # Type check
 npm run type-check
 ```
 
-## Architecture
+## Build Outputs
 
-This wrapper maintains API compatibility with the old `@snf/access-qa-bot` while leveraging `@snf/qa-bot-core` for core functionality. It:
+| File | Format | Use Case |
+|------|--------|----------|
+| `dist/access-qa-bot.js` | ESM | npm import (React apps) |
+| `dist/access-qa-bot.umd.cjs` | UMD | CommonJS require |
+| `dist/access-qa-bot.standalone.js` | IIFE | CDN/script tag (bundles Preact) |
+| `dist/style.css` | CSS | Styles (auto-imported by standalone) |
 
-- Accepts `isLoggedIn` prop (access-ci-ui compatibility)
-- Passes it to qa-bot-core (currently as `enabled`, will use `isLoggedIn` once available)
-- Adds ACCESS-specific branding and configuration
-- Provides Q&A flow with thumbs up/down feedback
-- Supports both React component and standalone usage
+## Version History
 
-## Future Features
+This package continues the `@snf/access-qa-bot` npm package:
 
-- Additional conversation flows (ticket creation, security incidents)
-- File attachment support
-- Full feature parity with old qa-bot
+| Version | Repository | Notes |
+|---------|------------|-------|
+| v0.x - v2.x | [qa-bot](https://github.com/necyberteam/qa-bot) (deprecated) | Original implementation |
+| v3.0.0+ | [access-qa-bot](https://github.com/necyberteam/access-qa-bot) (this repo) | Rewrite using qa-bot-core |
+
+### What's New in v3.0.0
+
+- **Architecture**: Now wraps @snf/qa-bot-core instead of embedding all logic
+- **TypeScript**: Full TypeScript rewrite with type definitions
+- **Build**: Vite-based build system (was Rollup + CRA)
+- **Props**: `enabled` → `isLoggedIn` (breaking change)
+- **Flows**: Same user-facing flows, cleaner implementation
 
 ## License
 
