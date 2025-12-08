@@ -7,7 +7,6 @@
  * Language matches: qa-bot/src/utils/flows/tickets/affiliated-login-flow.js
  */
 
-import React from 'react';
 import { FileUploadComponent } from '@snf/qa-bot-core';
 import {
   getCurrentTicketForm,
@@ -25,7 +24,7 @@ interface FlowParams {
   userInfo: UserInfo;
 }
 
-interface ChatState {
+export interface ChatState {
   userInput: string;
   prevPath?: string;
 }

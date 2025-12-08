@@ -5,7 +5,6 @@
  * Based on the old qa-bot's security-flow.js with exact language preserved.
  */
 
-import React from 'react';
 import { FileUploadComponent } from '@snf/qa-bot-core';
 import { getCurrentTicketForm, type TicketFormData, type UserInfo } from '../utils/flow-context';
 import { submitTicket, type TicketSubmissionResult } from '../utils/ticket-api';
@@ -177,7 +176,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
         return !!(formWithUserInfo.name && formWithUserInfo.email && formWithUserInfo.accessId);
       },
       path: (chatState: ChatState) => {
-        const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
         if (chatState.userInput === "Yes, that's correct") {
           return "security_summary";
         } else if (chatState.userInput === "Let me update it") {
@@ -300,7 +298,6 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
     // Step 11: Success message
     security_success: {
       message: () => {
-        const currentForm = getCurrentTicketForm() as TicketFormData;
         return generateSecuritySuccessMessage(submissionResult);
       },
       options: ["Back to Main Menu"],
