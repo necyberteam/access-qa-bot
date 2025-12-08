@@ -32,7 +32,7 @@
   "dependencies": {
     "@snf/qa-bot-core": "^0.2.3",
     "react-chatbotify": "^2.0.0",
-    "uuid": "^9.0.0"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
