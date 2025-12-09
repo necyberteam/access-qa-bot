@@ -129,3 +129,13 @@
   color: white;
   transform: translateY(0);
 }
+
+/* Header - explicit font size to match v2.7.x */
+.rcb-chat-header-container {
+  font-size: 14px;
+}
+
+/* Button border - ensure override wins */
+.rcb-options {
+  border: 1px solid #d0d0d0 !important;
+}
