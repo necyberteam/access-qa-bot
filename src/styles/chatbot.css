@@ -88,3 +88,44 @@
     font-size: 9px !important;
   }
 }
+
+/* Options container - horizontal flow */
+.rcb-options-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px;
+  padding: 0;
+}
+
+/* Options buttons - rectangular ACCESS style */
+.rcb-options {
+  border: 1px solid #d0d0d0;
+  background-color: #ffffff;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  color: #107180;
+  width: auto;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+.rcb-options:hover {
+  background-color: #e8f4f8;
+  border-color: #107180;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(16, 113, 128, 0.2);
+}
+
+.rcb-options:active {
+  background-color: #107180;
+  border-color: #107180;
+  color: white;
+  transform: translateY(0);
+}
