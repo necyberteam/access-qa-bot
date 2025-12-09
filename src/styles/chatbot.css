@@ -31,3 +31,60 @@
   background-position: center;
   background-repeat: no-repeat;
 }
+
+/* Window dimensions - ACCESS wants larger than default 375x550 */
+.rcb-chat-window {
+  width: 550px !important;
+  height: 800px !important;
+  max-height: 80vh !important;
+  max-width: 100%;
+}
+
+/* Header - centered vertically, bold text */
+.rcb-chat-window .rcb-chat-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-weight: 700;
+}
+
+/* Footer - centered vertically (default is flex-end), smaller text */
+.rcb-chat-footer-container {
+  align-items: center !important;
+  font-size: 10px;
+}
+
+/* Login icon visibility */
+.qa-bot .user-login-icon {
+  display: none !important;
+}
+
+.qa-bot.bot-logged-in .user-login-icon {
+  display: flex !important;
+  transform: scale(1.3) translateY(-2px);
+}
+
+/* Responsive - tablet */
+@media (max-width: 768px) {
+  .rcb-chat-window {
+    width: 550px !important;
+    max-width: calc(100vw - 40px) !important;
+    max-height: calc(100vh - 100px) !important;
+  }
+}
+
+/* Responsive - mobile */
+@media (max-width: 480px) {
+  .rcb-chat-window {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100vh - 80px) !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 10px !important;
+  }
+
+  .rcb-chat-footer-container {
+    font-size: 9px !important;
+  }
+}
