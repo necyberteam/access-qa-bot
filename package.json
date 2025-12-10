@@ -1,6 +1,6 @@
 {
   "name": "@snf/access-qa-bot",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "ACCESS-specific wrapper around @snf/qa-bot-core",
   "type": "module",
   "main": "./dist/access-qa-bot.umd.cjs",
@@ -30,7 +30,7 @@
     "react-dom": "^18.0.0"
   },
   "dependencies": {
-    "@snf/qa-bot-core": "^0.2.3",
+    "@snf/qa-bot-core": "^0.2.4",
     "react-chatbotify": "^2.0.0",
     "uuid": "^11.1.0"
   },
