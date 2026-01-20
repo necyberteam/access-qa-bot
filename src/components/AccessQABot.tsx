@@ -113,11 +113,20 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       return applyFlowSettings(rawFlow, { disableOnOptions: true });
     }, [welcomeMessage, ticketForm, userInfo, sessionId, apiKey, isLoggedIn]);
 
+    // TEMPORARY: Log core analytics events to verify 0.2.6 is working
+    // TODO: Remove this and wire up proper Layer 2 analytics
+    const handleCoreAnalyticsEvent = (event: { type: string; [key: string]: unknown }) => {
+      console.log('[qa-bot-core analytics]', event.type, event);
+    };
+
     return (
       <QABot
         ref={botRef}
         // Login state - Q&A is gated when false, tickets/security work regardless
         isLoggedIn={isLoggedIn}
+
+        // Analytics (temporary logging for testing)
+        onAnalyticsEvent={handleCoreAnalyticsEvent}
 
         // API configuration
         apiKey={apiKey}
