@@ -755,17 +755,8 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
           await handleSubmit(formData, currentForm.uploadedFiles || []);
         }
       },
-      path: (chatState: ChatState) => {
-        if (chatState.userInput === "Back to Main Menu") {
-          trackEvent({
-            type: 'chatbot_flow_abandoned',
-            flow: 'general_help',
-            lastStep: 'summary',
-          });
-          return "start";
-        }
-        return "general_help_success";
-      },
+      path: (chatState: ChatState) =>
+        chatState.userInput === "Submit Ticket" ? "general_help_success" : "start",
     },
 
     // Step 16: Success message

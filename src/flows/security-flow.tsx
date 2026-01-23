@@ -350,17 +350,8 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
           await handleSubmit(formData, currentForm.uploadedFiles || [], finalForm.priority);
         }
       },
-      path: (chatState: ChatState) => {
-        if (chatState.userInput === "Back to Main Menu") {
-          trackEvent({
-            type: 'chatbot_flow_abandoned',
-            flow: 'security',
-            lastStep: 'summary',
-          });
-          return "start";
-        }
-        return "security_success";
-      },
+      path: (chatState: ChatState) =>
+        chatState.userInput === "Submit Security Report" ? "security_success" : "start",
     },
 
     // Step 11: Success message

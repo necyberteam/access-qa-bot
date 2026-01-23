@@ -99,17 +99,10 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
                "Would you like to submit a help ticket for resource provider login issues?",
       options: ["Yes, let's create a ticket", "Back to Main Menu"],
       renderHtml: ["BOT"],
-      path: (chatState: ChatState) => {
-        if (chatState.userInput === "Back to Main Menu") {
-          trackEvent({
-            type: 'chatbot_flow_abandoned',
-            flow: 'resource_login',
-            lastStep: 'intro',
-          });
-          return "start";
-        }
-        return "resource_login_resource";
-      },
+      path: (chatState: ChatState) =>
+        chatState.userInput === "Yes, let's create a ticket"
+          ? "resource_login_resource"
+          : "start",
     },
 
     // Step 1: Which resource (options)
@@ -329,17 +322,8 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
           await handleSubmit(formData, currentForm.uploadedFiles || []);
         }
       },
-      path: (chatState: ChatState) => {
-        if (chatState.userInput === "Back to Main Menu") {
-          trackEvent({
-            type: 'chatbot_flow_abandoned',
-            flow: 'resource_login',
-            lastStep: 'summary',
-          });
-          return "start";
-        }
-        return "resource_login_success";
-      },
+      path: (chatState: ChatState) =>
+        chatState.userInput === "Submit Ticket" ? "resource_login_success" : "start",
     },
 
     // Step 10: Success message (options)

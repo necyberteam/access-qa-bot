@@ -99,17 +99,10 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
                "• Check if you're using the correct identity provider\n\n" +
                "Would you like to submit a help ticket for ACCESS login issues?",
       options: ["Yes, let's create a ticket", "Back to Main Menu"],
-      path: (chatState: ChatState) => {
-        if (chatState.userInput === "Back to Main Menu") {
-          trackEvent({
-            type: 'chatbot_flow_abandoned',
-            flow: 'access_login',
-            lastStep: 'intro',
-          });
-          return "start";
-        }
-        return "access_login_description";
-      },
+      path: (chatState: ChatState) =>
+        chatState.userInput === "Yes, let's create a ticket"
+          ? "access_login_description"
+          : "start",
     },
 
     // Step 1: Describe the issue (text input)
@@ -310,17 +303,8 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
           await handleSubmit(formData, currentForm.uploadedFiles || []);
         }
       },
-      path: (chatState: ChatState) => {
-        if (chatState.userInput === "Back to Main Menu") {
-          trackEvent({
-            type: 'chatbot_flow_abandoned',
-            flow: 'access_login',
-            lastStep: 'summary',
-          });
-          return "start";
-        }
-        return "access_login_success";
-      },
+      path: (chatState: ChatState) =>
+        chatState.userInput === "Submit Ticket" ? "access_login_success" : "start",
     },
 
     // Step 10: Success message (options)
