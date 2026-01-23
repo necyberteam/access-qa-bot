@@ -7,7 +7,7 @@
  * Language matches: qa-bot/src/utils/flows/tickets/general-help-flow.js
  */
 
-import { FileUploadComponent } from '@snf/qa-bot-core';
+import { FileUploadComponent, withHistoryFn } from '@snf/qa-bot-core';
 import {
   getCurrentTicketForm,
   getCurrentFormWithUserInfo,
@@ -668,7 +668,7 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
 
     // Step 16: Success message
     general_help_success: {
-      message: () => generateSuccessMessage(submissionResult, 'support ticket'),
+      message: withHistoryFn(() => generateSuccessMessage(submissionResult, 'support ticket')),
       options: ["Back to Main Menu"],
       renderHtml: ["BOT"],
       path: "start",

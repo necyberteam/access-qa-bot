@@ -7,7 +7,7 @@
  * Language matches: qa-bot/src/utils/flows/tickets/affiliated-login-flow.js
  */
 
-import { FileUploadComponent } from '@snf/qa-bot-core';
+import { FileUploadComponent, withHistoryFn } from '@snf/qa-bot-core';
 import {
   getCurrentTicketForm,
   getCurrentFormWithUserInfo,
@@ -265,7 +265,7 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
 
     // Step 10: Success message (options)
     resource_login_success: {
-      message: () => generateSuccessMessage(submissionResult, 'resource login ticket'),
+      message: withHistoryFn(() => generateSuccessMessage(submissionResult, 'resource login ticket')),
       options: ["Back to Main Menu"],
       renderHtml: ["BOT"],
       path: "start",

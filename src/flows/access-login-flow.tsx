@@ -6,7 +6,7 @@
  * ticket submission logic.
  */
 
-import { FileUploadComponent } from '@snf/qa-bot-core';
+import { FileUploadComponent, withHistoryFn } from '@snf/qa-bot-core';
 import {
   getCurrentTicketForm,
   getCurrentFormWithUserInfo,
@@ -246,7 +246,7 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
 
     // Step 10: Success message (options)
     access_login_success: {
-      message: () => generateSuccessMessage(submissionResult, 'ACCESS login ticket'),
+      message: withHistoryFn(() => generateSuccessMessage(submissionResult, 'ACCESS login ticket')),
       options: ["Back to Main Menu"],
       renderHtml: ["BOT"],
       path: "start",

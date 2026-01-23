@@ -5,7 +5,7 @@
  * Based on the old qa-bot's security-flow.js with exact language preserved.
  */
 
-import { FileUploadComponent } from '@snf/qa-bot-core';
+import { FileUploadComponent, withHistoryFn } from '@snf/qa-bot-core';
 import { getCurrentTicketForm, type TicketFormData, type UserInfo } from '../utils/flow-context';
 import { submitTicket, type TicketSubmissionResult } from '../utils/ticket-api';
 import { validateEmail, createOptionalFieldValidator, processOptionalInput } from '../utils/validation';
@@ -297,9 +297,7 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
 
     // Step 11: Success message
     security_success: {
-      message: () => {
-        return generateSecuritySuccessMessage(submissionResult);
-      },
+      message: withHistoryFn(() => generateSecuritySuccessMessage(submissionResult)),
       options: ["Back to Main Menu"],
       renderHtml: ["BOT"],
       path: "start",
