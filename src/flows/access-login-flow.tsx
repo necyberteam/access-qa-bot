@@ -99,10 +99,17 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
                "• Check if you're using the correct identity provider\n\n" +
                "Would you like to submit a help ticket for ACCESS login issues?",
       options: ["Yes, let's create a ticket", "Back to Main Menu"],
-      path: (chatState: ChatState) =>
-        chatState.userInput === "Yes, let's create a ticket"
-          ? "access_login_description"
-          : "start",
+      path: (chatState: ChatState) => {
+        if (chatState.userInput === "Back to Main Menu") {
+          trackEvent({
+            type: 'chatbot_flow_abandoned',
+            flow: 'access_login',
+            lastStep: 'intro',
+          });
+          return "start";
+        }
+        return "access_login_description";
+      },
     },
 
     // Step 1: Describe the issue (text input)
@@ -117,6 +124,11 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
           name: userInfo.name || currentForm.name,
           accessId: userInfo.accessId || currentForm.accessId,
         });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'access_login',
+          step: 'description',
+        });
       },
       path: "access_login_identity",
     },
@@ -128,6 +140,11 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, identityProvider: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'access_login',
+          step: 'identity_provider',
+        });
       },
       path: "access_login_browser",
     },
@@ -139,6 +156,11 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, browser: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'access_login',
+          step: 'browser',
+        });
       },
       path: "access_login_attachment",
     },
@@ -150,6 +172,11 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, wantsAttachment: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'access_login',
+          step: 'attachment_choice',
+        });
       },
       path: (chatState: ChatState) => {
         if (chatState.userInput === "Yes") {
@@ -172,6 +199,11 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: () => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, uploadConfirmed: true });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'access_login',
+          step: 'file_upload',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -189,6 +221,11 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, email: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'access_login',
+          step: 'email',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -204,6 +241,11 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, name: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'access_login',
+          step: 'name',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -219,6 +261,11 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, accessId: processOptionalInput(chatState.userInput) });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'access_login',
+          step: 'access_id',
+        });
       },
       path: "access_login_summary",
     },
@@ -263,8 +310,17 @@ export function createAccessLoginFlow({ ticketForm: _ticketForm, setTicketForm, 
           await handleSubmit(formData, currentForm.uploadedFiles || []);
         }
       },
-      path: (chatState: ChatState) =>
-        chatState.userInput === "Submit Ticket" ? "access_login_success" : "start",
+      path: (chatState: ChatState) => {
+        if (chatState.userInput === "Back to Main Menu") {
+          trackEvent({
+            type: 'chatbot_flow_abandoned',
+            flow: 'access_login',
+            lastStep: 'summary',
+          });
+          return "start";
+        }
+        return "access_login_success";
+      },
     },
 
     // Step 10: Success message (options)

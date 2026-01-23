@@ -128,6 +128,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
           name: userInfo.name || currentForm.name,
           accessId: userInfo.accessId || currentForm.accessId,
         });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'summary',
+        });
       },
       path: "security_priority",
     },
@@ -139,6 +144,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, priority: chatState.userInput.toLowerCase() });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'priority',
+        });
       },
       path: "security_description",
     },
@@ -149,6 +159,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, description: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'description',
+        });
       },
       path: "security_attachment",
     },
@@ -160,6 +175,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, wantsAttachment: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'attachment_choice',
+        });
       },
       path: (chatState: ChatState) =>
         chatState.userInput === "Yes" ? "security_upload" : "security_contact_check",
@@ -173,6 +193,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: () => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, uploadConfirmed: true });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'file_upload',
+        });
       },
       path: "security_contact_check",
     },
@@ -216,6 +241,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, email: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'email',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -231,6 +261,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, name: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'name',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -249,6 +284,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
         mostRecentAccessId = finalInput;
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, accessId: finalInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'access_id',
+        });
       },
       path: "security_summary",
     },
@@ -311,10 +351,15 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
         }
       },
       path: (chatState: ChatState) => {
-        if (chatState.userInput === "Submit Security Report") {
-          return "security_success";
+        if (chatState.userInput === "Back to Main Menu") {
+          trackEvent({
+            type: 'chatbot_flow_abandoned',
+            flow: 'security',
+            lastStep: 'summary',
+          });
+          return "start";
         }
-        return "start";
+        return "security_success";
       },
     },
 

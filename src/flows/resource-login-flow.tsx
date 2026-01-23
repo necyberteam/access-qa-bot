@@ -99,10 +99,17 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
                "Would you like to submit a help ticket for resource provider login issues?",
       options: ["Yes, let's create a ticket", "Back to Main Menu"],
       renderHtml: ["BOT"],
-      path: (chatState: ChatState) =>
-        chatState.userInput === "Yes, let's create a ticket"
-          ? "resource_login_resource"
-          : "start",
+      path: (chatState: ChatState) => {
+        if (chatState.userInput === "Back to Main Menu") {
+          trackEvent({
+            type: 'chatbot_flow_abandoned',
+            flow: 'resource_login',
+            lastStep: 'intro',
+          });
+          return "start";
+        }
+        return "resource_login_resource";
+      },
     },
 
     // Step 1: Which resource (options)
@@ -132,6 +139,11 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, resource: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'resource_login',
+          step: 'resource_selection',
+        });
       },
       path: "resource_login_userid",
     },
@@ -142,6 +154,11 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, userIdResource: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'resource_login',
+          step: 'user_id',
+        });
       },
       path: "resource_login_description",
     },
@@ -158,6 +175,11 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
           name: userInfo.name || currentForm.name,
           accessId: userInfo.accessId || currentForm.accessId,
         });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'resource_login',
+          step: 'description',
+        });
       },
       path: "resource_login_attachment",
     },
@@ -169,6 +191,11 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, wantsAttachment: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'resource_login',
+          step: 'attachment_choice',
+        });
       },
       path: (chatState: ChatState) => {
         if (chatState.userInput === "Yes") {
@@ -191,6 +218,11 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       function: () => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, uploadConfirmed: true });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'resource_login',
+          step: 'file_upload',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -208,6 +240,11 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, email: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'resource_login',
+          step: 'email',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -223,6 +260,11 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, name: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'resource_login',
+          step: 'name',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -238,6 +280,11 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, accessId: processOptionalInput(chatState.userInput) });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'resource_login',
+          step: 'access_id',
+        });
       },
       path: "resource_login_summary",
     },
@@ -282,8 +329,17 @@ export function createResourceLoginFlow({ ticketForm: _ticketForm, setTicketForm
           await handleSubmit(formData, currentForm.uploadedFiles || []);
         }
       },
-      path: (chatState: ChatState) =>
-        chatState.userInput === "Submit Ticket" ? "resource_login_success" : "start",
+      path: (chatState: ChatState) => {
+        if (chatState.userInput === "Back to Main Menu") {
+          trackEvent({
+            type: 'chatbot_flow_abandoned',
+            flow: 'resource_login',
+            lastStep: 'summary',
+          });
+          return "start";
+        }
+        return "resource_login_success";
+      },
     },
 
     // Step 10: Success message (options)
