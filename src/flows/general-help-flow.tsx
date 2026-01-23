@@ -17,11 +17,13 @@ import {
 } from '../utils/flow-context';
 import { submitTicket, generateSuccessMessage, type TicketSubmissionResult } from '../utils/ticket-api';
 import { validateEmail, createOptionalFieldValidator, processOptionalInput } from '../utils/validation';
+import type { TrackEventFn } from '../utils/analytics';
 
 interface FlowParams {
   ticketForm: TicketFormData;
   setTicketForm: (form: TicketFormData | ((prev: TicketFormData) => TicketFormData)) => void;
   userInfo: UserInfo;
+  trackEvent: TrackEventFn;
 }
 
 export interface ChatState {
@@ -355,7 +357,7 @@ const RESOURCES = [
 /**
  * Creates the General Help ticket flow
  */
-export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, userInfo }: FlowParams) {
+export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, userInfo, trackEvent }: FlowParams) {
   // Submission handler - stores result for success message
   let submissionResult: TicketSubmissionResult | null = null;
 
@@ -367,11 +369,24 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
         ticketKey: submissionResult!.ticketKey,
         ticketUrl: submissionResult!.ticketUrl,
       }));
+      // Track successful submission
+      trackEvent({
+        type: 'chatbot_ticket_submitted',
+        ticketType: 'general_help',
+        success: true,
+        ticketKey: submissionResult.ticketKey,
+      });
     } else {
       setTicketForm(prev => ({
         ...prev,
         submissionError: submissionResult!.error,
       }));
+      // Track submission error
+      trackEvent({
+        type: 'chatbot_ticket_error',
+        ticketType: 'general_help',
+        errorType: submissionResult.error || 'unknown',
+      });
     }
   };
 
@@ -383,6 +398,14 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
           ...prev,
           uploadedFiles: files,
         }));
+        // Track file uploads
+        files.forEach(file => {
+          trackEvent({
+            type: 'chatbot_file_uploaded',
+            fileType: file.type || 'unknown',
+            fileSize: file.size,
+          });
+        });
       }}
       enableScreenshot={true}
       maxSizeMB={10}

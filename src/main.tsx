@@ -40,6 +40,10 @@ function App() {
         userEmail={isLoggedIn ? "testuser@university.edu" : undefined}
         userName={isLoggedIn ? "Test User" : undefined}
         accessId={isLoggedIn ? "testuser123" : undefined}
+        // Analytics logging for development
+        onAnalyticsEvent={(event) => {
+          console.log('[Analytics]', event.type, event);
+        }}
       />
     </div>
   );

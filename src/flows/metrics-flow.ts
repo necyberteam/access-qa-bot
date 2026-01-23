@@ -7,10 +7,12 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { API_CONFIG } from '../config/constants';
+import type { TrackEventFn } from '../utils/analytics';
 
 interface FlowParams {
   sessionId: string;
   apiKey: string;
+  trackEvent: TrackEventFn;
 }
 
 interface ChatState {
@@ -29,7 +31,7 @@ function processResponse(text: string): string {
 /**
  * Creates the Metrics/XDMoD conversation flow
  */
-export function createMetricsFlow({ sessionId, apiKey }: FlowParams) {
+export function createMetricsFlow({ sessionId, apiKey, trackEvent }: FlowParams) {
   // Track the query ID for the most recent response that can receive feedback
   let feedbackQueryId: string | null = null;
 
@@ -76,6 +78,12 @@ export function createMetricsFlow({ sessionId, apiKey }: FlowParams) {
             // Generate our own query ID
             const queryId = uuidv4();
             feedbackQueryId = queryId;
+
+            // Track metrics question
+            trackEvent({
+              type: 'chatbot_metrics_question_sent',
+              queryId,
+            });
 
             const headers: Record<string, string> = {
               'Content-Type': 'application/json',

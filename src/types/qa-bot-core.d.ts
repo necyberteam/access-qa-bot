@@ -103,6 +103,12 @@ declare module '@snf/qa-bot-core' {
    */
   export function applyFlowSettings(flow: Flow, options: FlowSettingsOptions): Flow;
 
+  /**
+   * Wraps a message function to ensure its return value is captured in session history.
+   * Use this for dynamic messages (like success messages) that need to be restored.
+   */
+  export function withHistoryFn<T extends (...args: unknown[]) => string>(fn: T): T;
+
   // File upload components and utilities
   export interface FileUploadComponentProps {
     onFileUpload: (files: File[]) => void;

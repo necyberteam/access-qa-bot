@@ -9,11 +9,13 @@ import { FileUploadComponent, withHistoryFn } from '@snf/qa-bot-core';
 import { getCurrentTicketForm, type TicketFormData, type UserInfo } from '../utils/flow-context';
 import { submitTicket, type TicketSubmissionResult } from '../utils/ticket-api';
 import { validateEmail, createOptionalFieldValidator, processOptionalInput } from '../utils/validation';
+import type { TrackEventFn } from '../utils/analytics';
 
 interface FlowParams {
   ticketForm: TicketFormData;
   setTicketForm: (form: TicketFormData | ((prev: TicketFormData) => TicketFormData)) => void;
   userInfo: UserInfo;
+  trackEvent: TrackEventFn;
 }
 
 interface ChatState {
@@ -55,14 +57,14 @@ function generateSecuritySuccessMessage(result: TicketSubmissionResult | null): 
 /**
  * Creates the Security Incident flow
  */
-export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, userInfo }: FlowParams) {
+export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, userInfo, trackEvent }: FlowParams) {
   // Store the most recent ACCESS ID input to handle timing issues
   let mostRecentAccessId: string | null = null;
 
   // Submission handler - stores result for success message
   let submissionResult: TicketSubmissionResult | null = null;
 
-  const handleSubmit = async (formData: Record<string, unknown>, uploadedFiles: File[] = []) => {
+  const handleSubmit = async (formData: Record<string, unknown>, uploadedFiles: File[] = [], priority?: string) => {
     submissionResult = await submitTicket(formData, 'security', uploadedFiles);
     if (submissionResult.success) {
       setTicketForm(prev => ({
@@ -70,11 +72,24 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
         ticketKey: submissionResult!.ticketKey,
         ticketUrl: submissionResult!.ticketUrl,
       }));
+      // Track successful security submission
+      trackEvent({
+        type: 'chatbot_security_submitted',
+        success: true,
+        priority: priority || 'unknown',
+        ticketKey: submissionResult.ticketKey,
+      });
     } else {
       setTicketForm(prev => ({
         ...prev,
         submissionError: submissionResult!.error,
       }));
+      // Track security submission error
+      trackEvent({
+        type: 'chatbot_ticket_error',
+        ticketType: 'security',
+        errorType: submissionResult.error || 'unknown',
+      });
     }
   };
 
@@ -86,6 +101,14 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
           ...prev,
           uploadedFiles: files,
         }));
+        // Track file uploads
+        files.forEach(file => {
+          trackEvent({
+            type: 'chatbot_file_uploaded',
+            fileType: file.type || 'unknown',
+            fileSize: file.size,
+          });
+        });
       }}
       enableScreenshot={true}
       maxSizeMB={10}
@@ -284,7 +307,7 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
             accessId: finalForm.accessId || "",
           };
 
-          await handleSubmit(formData, currentForm.uploadedFiles || []);
+          await handleSubmit(formData, currentForm.uploadedFiles || [], finalForm.priority);
         }
       },
       path: (chatState: ChatState) => {
