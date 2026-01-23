@@ -67,8 +67,8 @@ declare module '@snf/qa-bot-core' {
    */
   export interface QABotAnalyticsEvent {
     type: string;
-    sessionId: string;
-    timestamp: string;
+    sessionId?: string;
+    timestamp: number;
     [key: string]: unknown;
   }
 
