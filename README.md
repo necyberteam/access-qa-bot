@@ -106,6 +106,7 @@ function MyApp() {
 | `loginUrl` | string | `"/login"` | Login redirect URL |
 | `open` | boolean | - | Control chat window (floating mode) |
 | `onOpenChange` | function | - | Chat window state callback |
+| `onAnalyticsEvent` | function | - | Analytics event callback (receives core + wrapper events) |
 | `welcome` | string | - | Custom welcome message |
 | `userEmail` | string | - | Pre-populate email in forms |
 | `userName` | string | - | Pre-populate name in forms |
@@ -177,6 +178,7 @@ bot.destroy();
 | `embedded` | boolean | `false` | Embedded or floating mode |
 | `isLoggedIn` | boolean | `false` | User login state |
 | `loginUrl` | string | `"/login"` | Login redirect URL |
+| `onAnalyticsEvent` | function | - | Analytics event callback |
 | `welcome` | string | - | Welcome message |
 | `userEmail` | string | - | Pre-populate email |
 | `userName` | string | - | Pre-populate name |
@@ -289,6 +291,100 @@ return (
     // ... other props
   />
 );
+```
+
+### Analytics Integration
+
+qa-bot-core fires analytics events for core functionality (Q&A, ratings, open/close). Your wrapper can add its own events and forward everything to consumers.
+
+**1. Define a tracking function type:**
+
+```typescript
+// src/utils/analytics.ts
+export interface TrackEventInput {
+  type: string;
+  sessionId?: string;
+  timestamp?: number;
+  [key: string]: unknown;
+}
+
+export type TrackEventFn = (event: TrackEventInput) => void;
+```
+
+**2. Accept `onAnalyticsEvent` prop and create trackers:**
+
+```tsx
+// In your wrapper component
+const trackEvent: TrackEventFn = useCallback((event) => {
+  if (onAnalyticsEvent) {
+    onAnalyticsEvent({
+      ...event,
+      timestamp: event.timestamp ?? Date.now(),
+      sessionId: event.sessionId ?? sessionId,
+    });
+  }
+}, [onAnalyticsEvent, sessionId]);
+
+// Handler for core events from qa-bot-core
+const handleCoreAnalyticsEvent = useCallback((event) => {
+  if (onAnalyticsEvent) {
+    onAnalyticsEvent({
+      ...event,
+      timestamp: typeof event.timestamp === 'number' ? event.timestamp : Date.now(),
+      sessionId: typeof event.sessionId === 'string' ? event.sessionId : sessionId,
+    });
+  }
+}, [onAnalyticsEvent, sessionId]);
+```
+
+**3. Pass `trackEvent` to your flow creators:**
+
+```tsx
+const customFlow = useMemo(() => {
+  const menuFlow = createMenuFlow({ trackEvent });
+  const ticketFlow = createTicketFlow({ trackEvent });
+  // ...
+}, [trackEvent]);
+```
+
+**4. Wire up core analytics:**
+
+```tsx
+<QABot
+  onAnalyticsEvent={handleCoreAnalyticsEvent}
+  customFlow={customFlow}
+  // ...
+/>
+```
+
+**5. Fire events in your flows:**
+
+```typescript
+export function createTicketFlow({ trackEvent }: FlowParams) {
+  return {
+    ticket_submit: {
+      function: async (chatState) => {
+        const result = await submitTicket(data);
+        trackEvent({
+          type: 'ticket_submitted',
+          ticketType: 'general',
+          success: result.success,
+        });
+      },
+      // ...
+    },
+  };
+}
+```
+
+Consumers can then wire events to their analytics platform:
+
+```tsx
+<YourWrapper
+  onAnalyticsEvent={(event) => {
+    window.dataLayer?.push({ event: event.type, ...event });
+  }}
+/>
 ```
 
 ---

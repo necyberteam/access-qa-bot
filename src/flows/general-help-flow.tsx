@@ -7,7 +7,7 @@
  * Language matches: qa-bot/src/utils/flows/tickets/general-help-flow.js
  */
 
-import { FileUploadComponent } from '@snf/qa-bot-core';
+import { FileUploadComponent, withHistoryFn } from '@snf/qa-bot-core';
 import {
   getCurrentTicketForm,
   getCurrentFormWithUserInfo,
@@ -17,11 +17,13 @@ import {
 } from '../utils/flow-context';
 import { submitTicket, generateSuccessMessage, type TicketSubmissionResult } from '../utils/ticket-api';
 import { validateEmail, createOptionalFieldValidator, processOptionalInput } from '../utils/validation';
+import type { TrackEventFn } from '../utils/analytics';
 
 interface FlowParams {
   ticketForm: TicketFormData;
   setTicketForm: (form: TicketFormData | ((prev: TicketFormData) => TicketFormData)) => void;
   userInfo: UserInfo;
+  trackEvent: TrackEventFn;
 }
 
 export interface ChatState {
@@ -355,7 +357,7 @@ const RESOURCES = [
 /**
  * Creates the General Help ticket flow
  */
-export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, userInfo }: FlowParams) {
+export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, userInfo, trackEvent }: FlowParams) {
   // Submission handler - stores result for success message
   let submissionResult: TicketSubmissionResult | null = null;
 
@@ -367,11 +369,24 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
         ticketKey: submissionResult!.ticketKey,
         ticketUrl: submissionResult!.ticketUrl,
       }));
+      // Track successful submission
+      trackEvent({
+        type: 'chatbot_ticket_submitted',
+        ticketType: 'general_help',
+        success: true,
+        ticketKey: submissionResult.ticketKey,
+      });
     } else {
       setTicketForm(prev => ({
         ...prev,
         submissionError: submissionResult!.error,
       }));
+      // Track submission error
+      trackEvent({
+        type: 'chatbot_ticket_error',
+        ticketType: 'general_help',
+        errorType: submissionResult.error || 'unknown',
+      });
     }
   };
 
@@ -383,6 +398,14 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
           ...prev,
           uploadedFiles: files,
         }));
+        // Track file uploads
+        files.forEach(file => {
+          trackEvent({
+            type: 'chatbot_file_uploaded',
+            fileType: file.type || 'unknown',
+            fileSize: file.size,
+          });
+        });
       }}
       enableScreenshot={true}
       maxSizeMB={10}
@@ -401,6 +424,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
           email: userInfo.email || currentForm.email,
           name: userInfo.name || currentForm.name,
           accessId: userInfo.accessId || currentForm.accessId,
+        });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'title',
         });
       },
       path: "general_help_category",
@@ -424,6 +452,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, category: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'category',
+        });
       },
       path: "general_help_description",
     },
@@ -434,6 +467,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, description: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'description',
+        });
       },
       path: "general_help_attachment",
     },
@@ -445,6 +483,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, wantsAttachment: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'attachment_choice',
+        });
       },
       path: (chatState: ChatState) =>
         chatState.userInput === "Yes" ? "general_help_upload" : "general_help_resource",
@@ -458,6 +501,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: () => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, uploadConfirmed: true });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'file_upload',
+        });
       },
       path: "general_help_resource",
     },
@@ -469,6 +517,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, involvesResource: chatState.userInput.toLowerCase() });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'resource_choice',
+        });
       },
       path: (chatState: ChatState) =>
         chatState.userInput === "Yes" ? "general_help_resource_details" : "general_help_keywords",
@@ -481,6 +534,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, resourceDetails: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'resource_selection',
+        });
       },
       path: "general_help_user_id_at_resource",
     },
@@ -492,6 +550,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, userIdAtResource: processOptionalInput(chatState.userInput) });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'resource_user_id',
+        });
       },
       path: "general_help_keywords",
     },
@@ -507,6 +570,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, keywords: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'keywords',
+        });
       },
       path: (chatState: ChatState) => {
         if (chatState.userInput && chatState.userInput.includes("I don't see a relevant keyword")) {
@@ -542,6 +610,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
           keywords: formattedKeywords,
           suggestedKeyword: additionalKeywords,
         });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'additional_keywords',
+        });
       },
       path: "general_help_priority",
     },
@@ -553,6 +626,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, priority: chatState.userInput.toLowerCase() });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'priority',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -570,6 +648,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, email: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'email',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -585,6 +668,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, name: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'name',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -600,6 +688,11 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm();
         setTicketForm({ ...currentForm, accessId: processOptionalInput(chatState.userInput) });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'general_help',
+          step: 'access_id',
+        });
       },
       path: "general_help_ticket_summary",
     },
@@ -668,7 +761,7 @@ export function createGeneralHelpFlow({ ticketForm: _ticketForm, setTicketForm, 
 
     // Step 16: Success message
     general_help_success: {
-      message: () => generateSuccessMessage(submissionResult, 'support ticket'),
+      message: withHistoryFn(() => generateSuccessMessage(submissionResult, 'support ticket')),
       options: ["Back to Main Menu"],
       renderHtml: ["BOT"],
       path: "start",

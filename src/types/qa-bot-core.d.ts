@@ -52,6 +52,24 @@ declare module '@snf/qa-bot-core' {
      * Use this to add ticket creation flows, feedback flows, etc.
      */
     customFlow?: Flow;
+
+    /**
+     * Callback for analytics events from qa-bot-core.
+     * Events include: chatbot_open, chatbot_close, chatbot_question_sent,
+     * chatbot_answer_received, chatbot_answer_error, chatbot_rating_sent,
+     * chatbot_new_chat, chatbot_login_prompt_shown
+     */
+    onAnalyticsEvent?: (event: QABotAnalyticsEvent) => void;
+  }
+
+  /**
+   * Analytics event from qa-bot-core
+   */
+  export interface QABotAnalyticsEvent {
+    type: string;
+    sessionId?: string;
+    timestamp: number;
+    [key: string]: unknown;
   }
 
   export interface BotControllerHandle {
@@ -84,6 +102,12 @@ declare module '@snf/qa-bot-core' {
    * @returns A new flow object with settings applied
    */
   export function applyFlowSettings(flow: Flow, options: FlowSettingsOptions): Flow;
+
+  /**
+   * Wraps a message function to ensure its return value is captured in session history.
+   * Use this for dynamic messages (like success messages) that need to be restored.
+   */
+  export function withHistoryFn<T extends (...args: unknown[]) => string>(fn: T): T;
 
   // File upload components and utilities
   export interface FileUploadComponentProps {

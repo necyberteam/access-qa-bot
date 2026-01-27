@@ -1,4 +1,15 @@
 /**
+ * Analytics event from AccessQABot
+ * Includes both core events (from qa-bot-core) and Layer 2 events (ACCESS-specific)
+ */
+export interface AccessQABotAnalyticsEvent {
+  type: string;
+  sessionId?: string;
+  timestamp: number;
+  [key: string]: unknown;
+}
+
+/**
  * Props for the AccessQABot React component
  * Maintains API compatibility with old @snf/access-qa-bot
  */
@@ -23,8 +34,15 @@ export interface AccessQABotProps {
   ringEffect?: boolean;         // Enable tooltip ring animation
   defaultOpen?: boolean;        // Initial open state
 
-  // Callback
+  // Callbacks
   onClose?: () => void;         // Callback when chat closes
+  
+  /**
+   * Callback for analytics events.
+   * Receives both core events (qa_bot_opened, qa_question_asked, etc.)
+   * and Layer 2 events (chatbot_menu_selected, chatbot_ticket_submitted, etc.)
+   */
+  onAnalyticsEvent?: (event: AccessQABotAnalyticsEvent) => void;
 }
 
 /**

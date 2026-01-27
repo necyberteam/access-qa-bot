@@ -1,10 +1,11 @@
-import { forwardRef, useImperativeHandle, useRef, useState, useMemo, useEffect } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import { QABot, applyFlowSettings } from '@snf/qa-bot-core';
 import type { AccessQABotProps, AccessQABotRef } from '../types';
 import { API_CONFIG, BOT_CONFIG } from '../config/constants';
 import { createMainMenuFlow, createTicketFlow, createSecurityFlow, createMetricsFlow } from '../flows';
 import { setCurrentFormContext, type TicketFormData, type UserInfo } from '../utils/flow-context';
 import { getSessionId } from '../utils/session';
+import type { TrackEventFn } from '../utils/analytics';
 import '../styles/chatbot.css';
 
 /**
@@ -36,6 +37,8 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       onOpenChange,
       embedded = false,
       welcome,
+      // Analytics
+      onAnalyticsEvent,
     } = props;
 
     const botRef = useRef<any>(null);
@@ -69,8 +72,32 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
     const welcomeMessage = welcome ||
       (isLoggedIn ? BOT_CONFIG.WELCOME_MESSAGE : BOT_CONFIG.WELCOME_MESSAGE_LOGGED_OUT);
 
-    // Get session ID for metrics flow
+    // Get session ID for analytics and metrics flow
     const sessionId = useMemo(() => getSessionId(), []);
+
+    // Create analytics tracker that forwards events to consumer
+    const trackEvent: TrackEventFn = useCallback((event) => {
+      if (onAnalyticsEvent) {
+        onAnalyticsEvent({
+          ...event,
+          type: event.type,
+          timestamp: event.timestamp ?? Date.now(),
+          sessionId: event.sessionId ?? sessionId,
+        });
+      }
+    }, [onAnalyticsEvent, sessionId]);
+
+    // Handler for core analytics events - forwards them to consumer
+    const handleCoreAnalyticsEvent = useCallback((event: { type: string; [key: string]: unknown }) => {
+      if (onAnalyticsEvent) {
+        onAnalyticsEvent({
+          ...event,
+          type: event.type,
+          timestamp: typeof event.timestamp === 'number' ? event.timestamp : Date.now(),
+          sessionId: typeof event.sessionId === 'string' ? event.sessionId : sessionId,
+        });
+      }
+    }, [onAnalyticsEvent, sessionId]);
 
     // Build custom flow by combining main menu + all specialized flows
     const customFlow = useMemo(() => {
@@ -79,6 +106,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         welcome: welcomeMessage,
         setTicketForm,
         isLoggedIn,
+        trackEvent,
       });
 
       // Ticket flows handle ticket creation
@@ -86,6 +114,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         ticketForm,
         setTicketForm,
         userInfo,
+        trackEvent,
       });
 
       // Security flow for reporting security incidents
@@ -93,12 +122,14 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         ticketForm,
         setTicketForm,
         userInfo,
+        trackEvent,
       });
 
       // Metrics flow for XDMoD questions
       const metricsFlow = createMetricsFlow({
         sessionId,
         apiKey,
+        trackEvent,
       });
 
       // Merge all flows and apply settings
@@ -111,13 +142,16 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
       // Auto-set chatDisabled based on whether step has options/checkboxes
       return applyFlowSettings(rawFlow, { disableOnOptions: true });
-    }, [welcomeMessage, ticketForm, userInfo, sessionId, apiKey, isLoggedIn]);
+    }, [welcomeMessage, ticketForm, userInfo, sessionId, apiKey, isLoggedIn, trackEvent]);
 
     return (
       <QABot
         ref={botRef}
         // Login state - Q&A is gated when false, tickets/security work regardless
         isLoggedIn={isLoggedIn}
+
+        // Analytics (temporary logging for testing)
+        onAnalyticsEvent={handleCoreAnalyticsEvent}
 
         // API configuration
         apiKey={apiKey}

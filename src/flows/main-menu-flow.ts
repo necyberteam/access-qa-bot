@@ -5,11 +5,13 @@
  */
 
 import type { TicketFormData } from '../utils/flow-context';
+import type { TrackEventFn } from '../utils/analytics';
 
 interface FlowParams {
   welcome: string;
   setTicketForm: (form: TicketFormData) => void;
   isLoggedIn: boolean;
+  trackEvent: TrackEventFn;
 }
 
 interface ChatState {
@@ -19,7 +21,7 @@ interface ChatState {
 /**
  * Creates the main menu conversation flow
  */
-export function createMainMenuFlow({ welcome, setTicketForm, isLoggedIn }: FlowParams) {
+export function createMainMenuFlow({ welcome, setTicketForm, isLoggedIn, trackEvent }: FlowParams) {
   return {
     start: {
       message: welcome,
@@ -30,6 +32,12 @@ export function createMainMenuFlow({ welcome, setTicketForm, isLoggedIn }: FlowP
         "Report a security issue",
       ],
       path: (chatState: ChatState) => {
+        // Track menu selection
+        trackEvent({
+          type: 'chatbot_menu_selected',
+          selection: chatState.userInput,
+        });
+
         if (chatState.userInput === "Ask a question about ACCESS") {
           // If logged in, show prompt step that waits for actual question
           // If logged out, go directly to qa_loop which shows login gate
@@ -43,6 +51,9 @@ export function createMainMenuFlow({ welcome, setTicketForm, isLoggedIn }: FlowP
         } else if (chatState.userInput === "Report a security issue") {
           // Reset form data when starting a security report
           setTicketForm({});
+          trackEvent({
+            type: 'chatbot_security_started',
+          });
           return "security_incident";
         }
         return "start";

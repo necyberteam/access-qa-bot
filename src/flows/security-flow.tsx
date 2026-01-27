@@ -5,15 +5,17 @@
  * Based on the old qa-bot's security-flow.js with exact language preserved.
  */
 
-import { FileUploadComponent } from '@snf/qa-bot-core';
+import { FileUploadComponent, withHistoryFn } from '@snf/qa-bot-core';
 import { getCurrentTicketForm, type TicketFormData, type UserInfo } from '../utils/flow-context';
 import { submitTicket, type TicketSubmissionResult } from '../utils/ticket-api';
 import { validateEmail, createOptionalFieldValidator, processOptionalInput } from '../utils/validation';
+import type { TrackEventFn } from '../utils/analytics';
 
 interface FlowParams {
   ticketForm: TicketFormData;
   setTicketForm: (form: TicketFormData | ((prev: TicketFormData) => TicketFormData)) => void;
   userInfo: UserInfo;
+  trackEvent: TrackEventFn;
 }
 
 interface ChatState {
@@ -55,14 +57,14 @@ function generateSecuritySuccessMessage(result: TicketSubmissionResult | null): 
 /**
  * Creates the Security Incident flow
  */
-export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, userInfo }: FlowParams) {
+export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, userInfo, trackEvent }: FlowParams) {
   // Store the most recent ACCESS ID input to handle timing issues
   let mostRecentAccessId: string | null = null;
 
   // Submission handler - stores result for success message
   let submissionResult: TicketSubmissionResult | null = null;
 
-  const handleSubmit = async (formData: Record<string, unknown>, uploadedFiles: File[] = []) => {
+  const handleSubmit = async (formData: Record<string, unknown>, uploadedFiles: File[] = [], priority?: string) => {
     submissionResult = await submitTicket(formData, 'security', uploadedFiles);
     if (submissionResult.success) {
       setTicketForm(prev => ({
@@ -70,11 +72,24 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
         ticketKey: submissionResult!.ticketKey,
         ticketUrl: submissionResult!.ticketUrl,
       }));
+      // Track successful security submission
+      trackEvent({
+        type: 'chatbot_security_submitted',
+        success: true,
+        priority: priority || 'unknown',
+        ticketKey: submissionResult.ticketKey,
+      });
     } else {
       setTicketForm(prev => ({
         ...prev,
         submissionError: submissionResult!.error,
       }));
+      // Track security submission error
+      trackEvent({
+        type: 'chatbot_ticket_error',
+        ticketType: 'security',
+        errorType: submissionResult.error || 'unknown',
+      });
     }
   };
 
@@ -86,6 +101,14 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
           ...prev,
           uploadedFiles: files,
         }));
+        // Track file uploads
+        files.forEach(file => {
+          trackEvent({
+            type: 'chatbot_file_uploaded',
+            fileType: file.type || 'unknown',
+            fileSize: file.size,
+          });
+        });
       }}
       enableScreenshot={true}
       maxSizeMB={10}
@@ -105,6 +128,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
           name: userInfo.name || currentForm.name,
           accessId: userInfo.accessId || currentForm.accessId,
         });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'summary',
+        });
       },
       path: "security_priority",
     },
@@ -116,6 +144,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, priority: chatState.userInput.toLowerCase() });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'priority',
+        });
       },
       path: "security_description",
     },
@@ -126,6 +159,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, description: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'description',
+        });
       },
       path: "security_attachment",
     },
@@ -137,6 +175,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, wantsAttachment: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'attachment_choice',
+        });
       },
       path: (chatState: ChatState) =>
         chatState.userInput === "Yes" ? "security_upload" : "security_contact_check",
@@ -150,6 +193,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: () => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, uploadConfirmed: true });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'file_upload',
+        });
       },
       path: "security_contact_check",
     },
@@ -193,6 +241,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, email: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'email',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -208,6 +261,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
       function: (chatState: ChatState) => {
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, name: chatState.userInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'name',
+        });
       },
       path: () => {
         const formWithUserInfo = getCurrentFormWithUserInfo(userInfo);
@@ -226,6 +284,11 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
         mostRecentAccessId = finalInput;
         const currentForm = getCurrentTicketForm() as TicketFormData;
         setTicketForm({ ...currentForm, accessId: finalInput });
+        trackEvent({
+          type: 'chatbot_ticket_step',
+          ticketType: 'security',
+          step: 'access_id',
+        });
       },
       path: "security_summary",
     },
@@ -284,22 +347,16 @@ export function createSecurityFlow({ ticketForm: _ticketForm, setTicketForm, use
             accessId: finalForm.accessId || "",
           };
 
-          await handleSubmit(formData, currentForm.uploadedFiles || []);
+          await handleSubmit(formData, currentForm.uploadedFiles || [], finalForm.priority);
         }
       },
-      path: (chatState: ChatState) => {
-        if (chatState.userInput === "Submit Security Report") {
-          return "security_success";
-        }
-        return "start";
-      },
+      path: (chatState: ChatState) =>
+        chatState.userInput === "Submit Security Report" ? "security_success" : "start",
     },
 
     // Step 11: Success message
     security_success: {
-      message: () => {
-        return generateSecuritySuccessMessage(submissionResult);
-      },
+      message: withHistoryFn(() => generateSecuritySuccessMessage(submissionResult)),
       options: ["Back to Main Menu"],
       renderHtml: ["BOT"],
       path: "start",
