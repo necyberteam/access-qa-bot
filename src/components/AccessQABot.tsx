@@ -6,6 +6,7 @@ import { createMainMenuFlow, createTicketFlow, createSecurityFlow, createMetrics
 import { setCurrentFormContext, type TicketFormData, type UserInfo } from '../utils/flow-context';
 import { getSessionId } from '../utils/session';
 import type { TrackEventFn } from '../utils/analytics';
+import { injectShadowDomStyles } from '../utils/shadow-dom-styles';
 import '../styles/chatbot.css';
 
 /**
@@ -42,6 +43,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
     } = props;
 
     const botRef = useRef<any>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     // Ticket form state - managed here to persist across flow steps
     const [ticketForm, setTicketForm] = useState<TicketFormData>({});
@@ -52,6 +54,11 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       name: userName,
       accessId: accessId,
     }), [userEmail, userName, accessId]);
+
+    // Inject CSS overrides into shadow DOM if needed
+    useEffect(() => {
+      injectShadowDomStyles(containerRef.current);
+    }, []);
 
     // Keep form context in sync for flow utilities
     useEffect(() => {
@@ -145,6 +152,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
     }, [welcomeMessage, ticketForm, userInfo, sessionId, apiKey, isLoggedIn, trackEvent]);
 
     return (
+      <div ref={containerRef}>
       <QABot
         ref={botRef}
         // Login state - Q&A is gated when false, tickets/security work regardless
@@ -179,6 +187,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         // Custom flows for tickets, etc.
         customFlow={customFlow}
       />
+      </div>
     );
   }
 );
