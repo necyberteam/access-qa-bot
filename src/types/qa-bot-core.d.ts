@@ -40,6 +40,12 @@ declare module '@snf/qa-bot-core' {
     onOpenChange?: (open: boolean) => void;
 
     /**
+     * Acting user identifier forwarded to backend as X-Acting-User header
+     * and acting_user body field.
+     */
+    actingUser?: string;
+
+    /**
      * Allow anonymous access to Q&A even when not logged in.
      * - Default: false (Q&A is gated when isLoggedIn is false)
      * - Set to true to bypass login gating for Q&A

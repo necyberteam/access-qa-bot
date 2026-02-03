@@ -111,6 +111,7 @@ function MyApp() {
 | `userEmail` | string | - | Pre-populate email in forms |
 | `userName` | string | - | Pre-populate name in forms |
 | `accessId` | string | - | Pre-populate ACCESS ID in forms |
+| `actingUser` | string | - | Acting user identifier forwarded to backend as `X-Acting-User` header |
 
 #### Ref Methods
 
@@ -183,6 +184,7 @@ bot.destroy();
 | `userEmail` | string | - | Pre-populate email |
 | `userName` | string | - | Pre-populate name |
 | `accessId` | string | - | Pre-populate ACCESS ID |
+| `actingUser` | string | - | Acting user identifier forwarded to backend as `X-Acting-User` header |
 
 ---
 
