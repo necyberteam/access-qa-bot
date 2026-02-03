@@ -29,6 +29,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       userEmail,
       userName,
       accessId,
+      actingUser,
       // Unused props (accepted for API compatibility)
       ringEffect: _ringEffect,
       defaultOpen: _defaultOpen,
@@ -157,6 +158,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         ref={botRef}
         // Login state - Q&A is gated when false, tickets/security work regardless
         isLoggedIn={isLoggedIn}
+        actingUser={actingUser}
 
         // Analytics (temporary logging for testing)
         onAnalyticsEvent={handleCoreAnalyticsEvent}

@@ -21,6 +21,7 @@ export interface AccessQABotProps {
   userEmail?: string;           // Pre-populate user email
   userName?: string;            // Pre-populate user name
   accessId?: string;            // Pre-populate ACCESS ID
+  actingUser?: string;          // Acting user identifier forwarded to backend
 
   // UI Control (Floating Mode)
   open?: boolean;               // Control chat window visibility
