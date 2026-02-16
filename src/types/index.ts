@@ -35,6 +35,10 @@ export interface AccessQABotProps {
   ringEffect?: boolean;         // Enable tooltip ring animation
   defaultOpen?: boolean;        // Initial open state
 
+  // Endpoint overrides (default to API_CONFIG constants)
+  qaEndpoint?: string;          // Override Q&A API endpoint
+  ratingEndpoint?: string;      // Override rating API endpoint
+
   // Callbacks
   onClose?: () => void;         // Callback when chat closes
   

@@ -20,7 +20,7 @@ export const API_CONFIG = {
 export const BOT_CONFIG = {
   BOT_NAME: 'ACCESS Q&A',
   LOGO: 'https://support.access-ci.org/themes/contrib/asp-theme/images/icons/ACCESS-arrrow.svg',
-  WELCOME_MESSAGE: 'Hello! What can I help you with?',
+  WELCOME_MESSAGE: 'Hello! What can I help you with?\n\n*This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.* [Privacy Notice](https://support.access-ci.org/tools/access-qa-tool/privacy)',
   WELCOME_MESSAGE_LOGGED_OUT: 'To ask questions, please log in.',
   LOGIN_URL: '/login',
   PRIMARY_COLOR: '#1a5b6e',

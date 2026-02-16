@@ -39,6 +39,9 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       onOpenChange,
       embedded = false,
       welcome,
+      // Endpoint overrides
+      qaEndpoint,
+      ratingEndpoint,
       // Analytics
       onAnalyticsEvent,
     } = props;
@@ -165,8 +168,8 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
         // API configuration
         apiKey={apiKey}
-        qaEndpoint={API_CONFIG.QA_ENDPOINT}
-        ratingEndpoint={API_CONFIG.RATING_ENDPOINT}
+        qaEndpoint={qaEndpoint || API_CONFIG.QA_ENDPOINT}
+        ratingEndpoint={ratingEndpoint || API_CONFIG.RATING_ENDPOINT}
 
         // Branding
         botName={BOT_CONFIG.BOT_NAME}
@@ -183,8 +186,8 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         embedded={embedded}
 
         // Footer
-        footerText="Need more help?"
-        footerLink="https://support.access-ci.org"
+        footerText="AI-powered · Privacy Notice"
+        footerLink="https://support.access-ci.org/tools/access-qa-tool/privacy"
 
         // Custom flows for tickets, etc.
         customFlow={customFlow}
