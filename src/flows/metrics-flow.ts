@@ -38,7 +38,7 @@ export function createMetricsFlow({ sessionId, apiKey, trackEvent }: FlowParams)
   return {
     // Entry point with instructions
     metrics_intro: {
-      message: `Please type your question about usage and performance metrics (XDMoD) below. You can see some <a target="_blank" href="${API_CONFIG.METRICS_QUESTIONS_URL}">examples here</a>.`,
+      message: `Please type your question about usage and performance metrics (XDMoD) below. You can see some <a target="_blank" href="${API_CONFIG.METRICS_QUESTIONS_URL}">examples here</a>.\n\n<em>This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.</em> <a href="https://support.access-ci.org/tools/access-qa-tool/privacy">Privacy Notice</a>`,
       renderHtml: ["BOT"],
       path: "metrics_loop",
     },
