@@ -139,3 +139,16 @@
 .rcb-options {
   border: 1px solid #d0d0d0 !important;
 }
+
+/* Links in bot messages should be white on dark background */
+.rcb-bot-message a,
+.rcb-chat-window .rcb-bot-message a:link,
+.rcb-chat-window .rcb-bot-message a:visited {
+  color: #ffffff !important;
+  text-decoration: underline !important;
+}
+
+.rcb-bot-message a:hover {
+  opacity: 0.85;
+  text-decoration: underline !important;
+}

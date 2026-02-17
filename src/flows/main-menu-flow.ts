@@ -62,7 +62,8 @@ export function createMainMenuFlow({ welcome, setTicketForm, isLoggedIn, trackEv
 
     // Transition step for logged-in users - absorbs button click, waits for real question
     go_ahead_and_ask: {
-      message: "Go ahead and ask your question! I'll do my best to help.\n\n*This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.* [Privacy Notice](https://support.access-ci.org/tools/access-qa-tool/privacy)",
+      message: 'Go ahead and ask your question! I\'ll do my best to help.\n\n<em>This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.</em> <a href="https://support.access-ci.org/tools/access-qa-tool/privacy">Privacy Notice</a>',
+      renderHtml: ["BOT"],
       path: "qa_loop",
     },
   };

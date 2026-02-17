@@ -137,6 +137,18 @@ const SHADOW_CSS = `
   color: white !important;
   transform: translateY(0) !important;
 }
+
+.rcb-bot-message a,
+.rcb-chat-window .rcb-bot-message a:link,
+.rcb-chat-window .rcb-bot-message a:visited {
+  color: #ffffff !important;
+  text-decoration: underline !important;
+}
+
+.rcb-bot-message a:hover {
+  opacity: 0.85;
+  text-decoration: underline !important;
+}
 `;
 
 /**

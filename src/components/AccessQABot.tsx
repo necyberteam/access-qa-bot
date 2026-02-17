@@ -111,6 +111,11 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
     }, [onAnalyticsEvent, sessionId]);
 
     // Build custom flow by combining main menu + all specialized flows
+    // Note: ticketForm is NOT a dependency here. All flows read current form state
+    // at runtime via getCurrentTicketForm() (from flow-context.ts), so the flow
+    // object doesn't need to be recreated when form fields change. Including it
+    // caused the entire flow to recreate on every keystroke, which led to duplicate
+    // messages in the conversation history.
     const customFlow = useMemo(() => {
       // Main menu provides top-level navigation
       const mainMenuFlow = createMainMenuFlow({
@@ -122,7 +127,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
       // Ticket flows handle ticket creation
       const ticketFlows = createTicketFlow({
-        ticketForm,
+        ticketForm: {},
         setTicketForm,
         userInfo,
         trackEvent,
@@ -130,7 +135,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
       // Security flow for reporting security incidents
       const securityFlow = createSecurityFlow({
-        ticketForm,
+        ticketForm: {},
         setTicketForm,
         userInfo,
         trackEvent,
@@ -153,7 +158,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
       // Auto-set chatDisabled based on whether step has options/checkboxes
       return applyFlowSettings(rawFlow, { disableOnOptions: true });
-    }, [welcomeMessage, ticketForm, userInfo, sessionId, apiKey, isLoggedIn, trackEvent]);
+    }, [welcomeMessage, userInfo, sessionId, apiKey, isLoggedIn, trackEvent]);
 
     return (
       <div ref={containerRef}>
