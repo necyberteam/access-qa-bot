@@ -28,12 +28,20 @@ export default defineConfig({
       }
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime'],
+      external: [
+        'react',
+        'react-dom',
+        'react-dom/client',
+        'react-dom/server',
+        'react/jsx-runtime',
+      ],
       output: {
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
-          'react/jsx-runtime': 'jsxRuntime'
+          'react-dom/client': 'ReactDOMClient',
+          'react-dom/server': 'ReactDOMServer',
+          'react/jsx-runtime': 'jsxRuntime',
         }
       }
     },
