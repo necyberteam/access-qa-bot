@@ -54,6 +54,12 @@ declare module '@snf/qa-bot-core' {
     allowAnonAccess?: boolean;
 
     /**
+     * Cloudflare Turnstile site key for bot protection.
+     * When provided, renders an invisible widget on mount for silent verification.
+     */
+    turnstileSiteKey?: string;
+
+    /**
      * Custom flow steps to merge with the built-in Q&A flow.
      * Use this to add ticket creation flows, feedback flows, etc.
      */

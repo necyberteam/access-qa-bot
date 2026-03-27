@@ -14,6 +14,9 @@ export const API_CONFIG = {
 
   // API key (can be overridden via prop)
   DEFAULT_API_KEY: import.meta.env.VITE_API_KEY || 'demo-key',
+
+  // Cloudflare Turnstile site key (public, safe to embed in frontend)
+  TURNSTILE_SITE_KEY: import.meta.env.VITE_TURNSTILE_SITE_KEY || '',
 };
 
 // Bot configuration defaults

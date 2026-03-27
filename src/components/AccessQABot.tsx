@@ -184,6 +184,9 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         welcomeMessage={welcomeMessage}
         tooltipText={BOT_CONFIG.TOOLTIP}
 
+        // Turnstile bot protection (silent pre-verify when site key configured)
+        turnstileSiteKey={API_CONFIG.TURNSTILE_SITE_KEY || undefined}
+
         // UI Control
         loginUrl={loginUrl}
         open={open}
