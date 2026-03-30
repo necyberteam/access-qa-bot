@@ -164,9 +164,9 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       <div ref={containerRef}>
       <QABot
         ref={botRef}
-        // Login state - Q&A is gated when false unless Turnstile is configured
+        // Login state - Q&A is gated when false unless anonymous access is enabled
         isLoggedIn={isLoggedIn}
-        allowAnonAccess={!!API_CONFIG.TURNSTILE_SITE_KEY}
+        allowAnonAccess={API_CONFIG.ALLOW_ANON_ACCESS}
         actingUser={actingUser}
 
         // Analytics (temporary logging for testing)

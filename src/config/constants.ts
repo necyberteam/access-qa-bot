@@ -17,6 +17,9 @@ export const API_CONFIG = {
 
   // Cloudflare Turnstile site key (public, safe to embed in frontend)
   TURNSTILE_SITE_KEY: import.meta.env.VITE_TURNSTILE_SITE_KEY || '',
+
+  // Allow anonymous users to chat without logging in
+  ALLOW_ANON_ACCESS: import.meta.env.VITE_ALLOW_ANON_ACCESS === 'true',
 };
 
 // Bot configuration defaults
