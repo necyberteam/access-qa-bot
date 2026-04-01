@@ -25,6 +25,8 @@ declare module '@snf/qa-bot-core' {
 
     // Optional props
     ratingEndpoint?: string;
+    capabilitiesEndpoint?: string;
+    agentRatingEndpoint?: string;
     primaryColor?: string;
     secondaryColor?: string;
     botName?: string;
