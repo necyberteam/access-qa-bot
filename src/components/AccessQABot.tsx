@@ -177,7 +177,6 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       // Main menu provides top-level navigation from dynamic capabilities
       const mainMenuFlow = createMainMenuFlow({
         welcome: welcomeMessage,
-        setTicketForm,
         isLoggedIn,
         trackEvent,
         capabilities,
@@ -218,6 +217,14 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       // BUT the start step explicitly sets chatDisabled: false to allow typing
       return applyFlowSettings(rawFlow, { disableOnOptions: true });
     }, [welcomeMessage, userInfo, sessionId, apiKey, isLoggedIn, trackEvent, capabilities]);
+
+    // Wait for capabilities to load before rendering — the start step's
+    // options are built from this data and react-chatbotify won't re-render
+    // them if the flow object changes after initial mount.  The capabilities
+    // endpoint is in-memory (<10ms), so the delay is imperceptible.
+    if (!capabilities) {
+      return <div ref={containerRef} />;
+    }
 
     return (
       <div ref={containerRef}>
