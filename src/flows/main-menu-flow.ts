@@ -31,6 +31,10 @@ function buildOptionLabels(
     // Skip categories with no capabilities
     if (!category.capabilities || category.capabilities.length === 0) continue;
 
+    // Skip "general" (Ask a question) — typing IS the default action,
+    // per spec resolved decision #1.
+    if (category.id === 'general') continue;
+
     // For single-capability categories, use the capability label directly
     // For multi-capability categories, use the category label
     if (category.capabilities.length === 1) {
