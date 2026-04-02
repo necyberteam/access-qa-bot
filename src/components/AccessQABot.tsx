@@ -53,7 +53,8 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
     // Ticket form state - managed here to persist across flow steps
     const [ticketForm, setTicketForm] = useState<TicketFormData>({});
 
-    // Capabilities state - fetched from the agent on mount
+    // Capabilities state - fetched from the agent on mount.
+    // null = still loading, object = loaded (even if empty categories on error)
     const [capabilities, setCapabilities] = useState<CapabilitiesResponse | null>(null);
 
     // User info from props
@@ -98,8 +99,11 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
             setCapabilities(data);
           }
         } catch (error) {
-          // Graceful degradation — buttons fall back to "Show my options"
+          // Graceful degradation — render the bot with fallback "Show my options" button
           console.warn('Failed to fetch capabilities:', error);
+          if (!cancelled) {
+            setCapabilities({ categories: [], is_authenticated: false });
+          }
         }
       }
 
