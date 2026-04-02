@@ -82,6 +82,22 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
     const capabilitiesEndpoint = `${agentBaseUrl}/capabilities`;
     const agentRatingEndpoint = `${agentBaseUrl}/rating`;
 
+    // Warn about common deployment misconfigurations
+    useEffect(() => {
+      if (agentBaseUrl.includes('localhost') && !window.location.hostname.includes('localhost')) {
+        console.warn(
+          '[AccessQABot] VITE_AGENT_ENDPOINT not set — agent requests will go to localhost. ' +
+          'Set VITE_AGENT_ENDPOINT in your environment.'
+        );
+      }
+      if (API_CONFIG.ALLOW_ANON_ACCESS && !API_CONFIG.TURNSTILE_SITE_KEY) {
+        console.warn(
+          '[AccessQABot] Anonymous access is enabled without Turnstile. ' +
+          'Set VITE_TURNSTILE_SITE_KEY for bot protection, or disable VITE_ALLOW_ANON_ACCESS.'
+        );
+      }
+    }, [agentBaseUrl]);
+
     // Fetch capabilities on mount (and when auth state changes)
     useEffect(() => {
       let cancelled = false;
