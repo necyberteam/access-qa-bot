@@ -1,70 +1,86 @@
 /**
  * Main Menu Flow
  *
- * Entry point for the conversation - provides top-level navigation options.
+ * Entry point for the conversation — builds dynamic buttons from the
+ * capabilities API response. Falls back to a minimal "Show my options"
+ * button if capabilities haven't loaded yet.
  */
 
-import type { TicketFormData } from '../utils/flow-context';
 import type { TrackEventFn } from '../utils/analytics';
+import type { CapabilitiesResponse } from '../types';
 
 interface FlowParams {
   welcome: string;
-  setTicketForm: (form: TicketFormData) => void;
   isLoggedIn: boolean;
   trackEvent: TrackEventFn;
+  /** Pre-fetched capabilities response (null while loading or on error) */
+  capabilities: CapabilitiesResponse | null;
 }
 
-interface ChatState {
-  userInput: string;
+/** Build option labels from capabilities, grouped by category */
+function buildOptionLabels(
+  capabilities: CapabilitiesResponse | null,
+): string[] {
+  if (!capabilities || !capabilities.categories) {
+    return ['Show my options'];
+  }
+
+  const labels: string[] = [];
+
+  for (const category of capabilities.categories) {
+    // Skip categories with no capabilities
+    if (!category.capabilities || category.capabilities.length === 0) continue;
+
+    // Skip "general" (Ask a question) — typing IS the default action,
+    // per spec resolved decision #1.
+    if (category.id === 'general') continue;
+
+    // For single-capability categories, use the capability label directly
+    // For multi-capability categories, use the category label
+    if (category.capabilities.length === 1) {
+      const cap = category.capabilities[0];
+      labels.push(cap.locked ? `🔒 ${cap.label}` : cap.label);
+    } else {
+      labels.push(category.label);
+    }
+  }
+
+  // Always append the discovery button
+  labels.push('Show my options');
+
+  return labels;
 }
 
 /**
  * Creates the main menu conversation flow
  */
-export function createMainMenuFlow({ welcome, setTicketForm, isLoggedIn, trackEvent }: FlowParams) {
+export function createMainMenuFlow({
+  welcome,
+  trackEvent,
+  capabilities,
+}: FlowParams) {
+  const options = buildOptionLabels(capabilities);
+
   return {
     start: {
       message: welcome,
-      options: [
-        "Ask a question about ACCESS",
-        "Open a Help Ticket",
-        "Usage and performance of ACCESS resources (XDMoD)",
-        "Report a security issue",
-      ],
-      path: (chatState: ChatState) => {
+      renderHtml: ["BOT"],
+      options,
+      // Typing is enabled from the start — chatDisabled is NOT set here.
+      // Users can type a question OR click a button.
+      chatDisabled: false,
+      path: (chatState: { userInput: string }) => {
         // Track menu selection
         trackEvent({
           type: 'chatbot_menu_selected',
           selection: chatState.userInput,
         });
 
-        if (chatState.userInput === "Ask a question about ACCESS") {
-          // If logged in, show prompt step that waits for actual question
-          // If logged out, go directly to qa_loop which shows login gate
-          return isLoggedIn ? "go_ahead_and_ask" : "qa_loop";
-        } else if (chatState.userInput === "Open a Help Ticket") {
-          // Reset form data when starting a new ticket
-          setTicketForm({});
-          return "help_ticket";
-        } else if (chatState.userInput === "Usage and performance of ACCESS resources (XDMoD)") {
-          return "metrics_intro";
-        } else if (chatState.userInput === "Report a security issue") {
-          // Reset form data when starting a security report
-          setTicketForm({});
-          trackEvent({
-            type: 'chatbot_security_started',
-          });
-          return "security_incident";
-        }
-        return "start";
+        // All selections go to qa_loop — the agent handles routing
+        // via classification (domain agents for tickets/announcements,
+        // RAG+tools for everything else).
+        return 'qa_loop';
       },
-    },
-
-    // Transition step for logged-in users - absorbs button click, waits for real question
-    go_ahead_and_ask: {
-      message: 'Go ahead and ask your question! I\'ll do my best to help.\n\n<em>This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.</em> <a href="https://support.access-ci.org/tools/access-qa-tool/privacy">Privacy Notice</a>',
-      renderHtml: ["BOT"],
-      path: "qa_loop",
     },
   };
 }

@@ -1,4 +1,34 @@
 /**
+ * Capability item from the /api/v1/capabilities endpoint
+ */
+export interface CapabilityItem {
+  id: string;
+  label: string;
+  description: string;
+  requires_auth: boolean;
+  locked?: boolean;
+}
+
+/**
+ * Category grouping from the /api/v1/capabilities endpoint
+ */
+export interface CapabilityCategory {
+  id: string;
+  label: string;
+  order: number;
+  capabilities: CapabilityItem[];
+}
+
+/**
+ * Response shape from GET /api/v1/capabilities
+ */
+export interface CapabilitiesResponse {
+  categories: CapabilityCategory[];
+  is_authenticated: boolean;
+  login_url?: string;
+}
+
+/**
  * Analytics event from AccessQABot
  * Includes both core events (from qa-bot-core) and Layer 2 events (ACCESS-specific)
  */
@@ -36,8 +66,9 @@ export interface AccessQABotProps {
   defaultOpen?: boolean;        // Initial open state
 
   // Endpoint overrides (default to API_CONFIG constants)
-  qaEndpoint?: string;          // Override Q&A API endpoint
-  ratingEndpoint?: string;      // Override rating API endpoint
+  qaEndpoint?: string;          // Override Q&A API endpoint (UKY RAG)
+  ratingEndpoint?: string;      // Override UKY RAG rating endpoint
+  agentEndpoint?: string;       // Override access-agent base URL (e.g., http://localhost:8000/api/v1)
 
   // Callbacks
   onClose?: () => void;         // Callback when chat closes

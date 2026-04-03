@@ -25,6 +25,8 @@ declare module '@snf/qa-bot-core' {
 
     // Optional props
     ratingEndpoint?: string;
+    capabilitiesEndpoint?: string;
+    agentRatingEndpoint?: string;
     primaryColor?: string;
     secondaryColor?: string;
     botName?: string;
@@ -52,6 +54,12 @@ declare module '@snf/qa-bot-core' {
      * - Does not affect custom flows (tickets, security, etc.)
      */
     allowAnonAccess?: boolean;
+
+    /**
+     * Cloudflare Turnstile site key for bot protection.
+     * When provided, renders an invisible widget on mount for silent verification.
+     */
+    turnstileSiteKey?: string;
 
     /**
      * Custom flow steps to merge with the built-in Q&A flow.
