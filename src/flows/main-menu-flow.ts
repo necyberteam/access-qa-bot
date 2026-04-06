@@ -17,38 +17,27 @@ interface FlowParams {
   capabilities: CapabilitiesResponse | null;
 }
 
-/** Build option labels from capabilities, grouped by category */
+/**
+ * Example queries that serve as buttons. Each is a real query that goes
+ * through the full agent pipeline — no shortcircuit, no canned text.
+ * Curated to show breadth and teach users how to phrase questions.
+ */
+const EXAMPLE_QUERIES = [
+  'Show my options',
+  'Are there any system outages right now?',
+  'Find upcoming workshops and training events',
+  'Is Python available on Delta?',
+  'Show me affinity groups for machine learning',
+  'What allocations are available for new researchers?',
+  'Create a support ticket',
+  'Recent announcements about Expanse',
+];
+
+/** Build option labels — example queries as buttons */
 function buildOptionLabels(
-  capabilities: CapabilitiesResponse | null,
+  _capabilities: CapabilitiesResponse | null,
 ): string[] {
-  if (!capabilities || !capabilities.categories) {
-    return ['Show my options'];
-  }
-
-  const labels: string[] = [];
-
-  for (const category of capabilities.categories) {
-    // Skip categories with no capabilities
-    if (!category.capabilities || category.capabilities.length === 0) continue;
-
-    // Skip "general" (Ask a question) — typing IS the default action,
-    // per spec resolved decision #1.
-    if (category.id === 'general') continue;
-
-    // For single-capability categories, use the capability label directly
-    // For multi-capability categories, use the category label
-    if (category.capabilities.length === 1) {
-      const cap = category.capabilities[0];
-      labels.push(cap.locked ? `🔒 ${cap.label}` : cap.label);
-    } else {
-      labels.push(category.label);
-    }
-  }
-
-  // Always append the discovery button
-  labels.push('Show my options');
-
-  return labels;
+  return EXAMPLE_QUERIES;
 }
 
 /**

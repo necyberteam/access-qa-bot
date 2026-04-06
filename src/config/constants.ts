@@ -34,7 +34,7 @@ export const API_CONFIG = {
 export const BOT_CONFIG = {
   BOT_NAME: 'ACCESS Q&A',
   LOGO: 'https://support.access-ci.org/themes/contrib/asp-theme/images/icons/ACCESS-arrrow.svg',
-  WELCOME_MESSAGE: 'Hello! What can I help you with?\n\n<em>This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.</em> <a href="https://support.access-ci.org/tools/access-qa-tool/privacy">Privacy Notice</a>',
+  WELCOME_MESSAGE: 'Hello! I can answer questions about ACCESS resources, allocations, software, events, and more. Try one of these example queries or type your own.\n\n<em>This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.</em> <a href="https://support.access-ci.org/tools/access-qa-tool/privacy">Privacy Notice</a>',
   LOGIN_URL: '/login',
   PRIMARY_COLOR: '#1a5b6e',
   SECONDARY_COLOR: '#107180',
