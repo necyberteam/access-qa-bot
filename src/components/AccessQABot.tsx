@@ -199,7 +199,6 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         welcome: welcomeMessage,
         isLoggedIn,
         trackEvent,
-        capabilities,
       });
 
       // Ticket flows handle ticket creation

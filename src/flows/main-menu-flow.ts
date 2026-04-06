@@ -1,27 +1,17 @@
 /**
  * Main Menu Flow
  *
- * Entry point for the conversation — builds dynamic buttons from the
- * capabilities API response. Falls back to a minimal "Show my options"
- * button if capabilities haven't loaded yet.
+ * Entry point for the conversation — shows a single "Show my options"
+ * discovery button. The agent returns a rich list of example queries
+ * when clicked.
  */
 
 import type { TrackEventFn } from '../utils/analytics';
-import type { CapabilitiesResponse } from '../types';
 
 interface FlowParams {
   welcome: string;
   isLoggedIn: boolean;
   trackEvent: TrackEventFn;
-  /** Pre-fetched capabilities response (null while loading or on error) */
-  capabilities: CapabilitiesResponse | null;
-}
-
-/** Minimal button set — just discovery */
-function buildOptionLabels(
-  _capabilities: CapabilitiesResponse | null,
-): string[] {
-  return ['Show my options'];
 }
 
 /**
@@ -30,15 +20,12 @@ function buildOptionLabels(
 export function createMainMenuFlow({
   welcome,
   trackEvent,
-  capabilities,
 }: FlowParams) {
-  const options = buildOptionLabels(capabilities);
-
   return {
     start: {
       message: welcome,
       renderHtml: ["BOT"],
-      options,
+      options: ['Show my options'],
       // Typing is enabled from the start — chatDisabled is NOT set here.
       // Users can type a question OR click a button.
       chatDisabled: false,
