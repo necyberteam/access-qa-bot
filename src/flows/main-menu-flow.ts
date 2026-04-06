@@ -17,38 +17,11 @@ interface FlowParams {
   capabilities: CapabilitiesResponse | null;
 }
 
-/** Build option labels from capabilities, grouped by category */
+/** Minimal button set — just discovery */
 function buildOptionLabels(
-  capabilities: CapabilitiesResponse | null,
+  _capabilities: CapabilitiesResponse | null,
 ): string[] {
-  if (!capabilities || !capabilities.categories) {
-    return ['Show my options'];
-  }
-
-  const labels: string[] = [];
-
-  for (const category of capabilities.categories) {
-    // Skip categories with no capabilities
-    if (!category.capabilities || category.capabilities.length === 0) continue;
-
-    // Skip "general" (Ask a question) — typing IS the default action,
-    // per spec resolved decision #1.
-    if (category.id === 'general') continue;
-
-    // For single-capability categories, use the capability label directly
-    // For multi-capability categories, use the category label
-    if (category.capabilities.length === 1) {
-      const cap = category.capabilities[0];
-      labels.push(cap.locked ? `🔒 ${cap.label}` : cap.label);
-    } else {
-      labels.push(category.label);
-    }
-  }
-
-  // Always append the discovery button
-  labels.push('Show my options');
-
-  return labels;
+  return ['Show my options'];
 }
 
 /**

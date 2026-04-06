@@ -35,7 +35,7 @@ function App() {
         onOpenChange={setIsOpen}
         // apiKey will default to env var
         embedded={false}
-        welcome="Hello! How can I help you today?"
+        // welcome prop omitted — uses BOT_CONFIG.WELCOME_MESSAGE default
         // Mock user data when logged in (simulates Drupal passing user context)
         userEmail={isLoggedIn ? "testuser@university.edu" : undefined}
         userName={isLoggedIn ? "Test User" : undefined}
