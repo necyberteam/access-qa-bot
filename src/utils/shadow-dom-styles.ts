@@ -149,6 +149,22 @@ const SHADOW_CSS = `
   opacity: 0.85;
   text-decoration: underline !important;
 }
+
+.rcb-bot-message ul,
+.rcb-bot-message ol {
+  list-style-position: outside !important;
+  margin: 0.5em 0 !important;
+  padding-left: 1.5em !important;
+}
+
+.rcb-bot-message li {
+  margin-bottom: 0.25em !important;
+}
+
+.rcb-bot-message li > p {
+  display: inline !important;
+  margin: 0 !important;
+}
 `;
 
 /**
