@@ -26,6 +26,7 @@ export interface CapabilitiesResponse {
   categories: CapabilityCategory[];
   is_authenticated: boolean;
   login_url?: string;
+  resource_context?: { slug: string; title: string };
 }
 
 /**
@@ -69,6 +70,9 @@ export interface AccessQABotProps {
   qaEndpoint?: string;          // Override Q&A API endpoint (UKY RAG)
   ratingEndpoint?: string;      // Override UKY RAG rating endpoint
   agentEndpoint?: string;       // Override access-agent base URL (e.g., http://localhost:8000/api/v1)
+
+  // Resource scoping
+  resourceContext?: string;     // RP slug for resource-scoped queries (e.g. 'delta')
 
   // Callbacks
   onClose?: () => void;         // Callback when chat closes
