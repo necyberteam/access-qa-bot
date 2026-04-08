@@ -43,6 +43,8 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       qaEndpoint,
       ratingEndpoint,
       agentEndpoint,
+      // Resource scoping
+      resourceContext,
       // Analytics
       onAnalyticsEvent,
     } = props;
@@ -79,7 +81,9 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
     // Derive agent API URLs
     const agentBaseUrl = agentEndpoint || API_CONFIG.AGENT_ENDPOINT;
-    const capabilitiesEndpoint = `${agentBaseUrl}/capabilities`;
+    const capabilitiesEndpoint = resourceContext
+      ? `${agentBaseUrl}/capabilities?resource_context=${encodeURIComponent(resourceContext)}`
+      : `${agentBaseUrl}/capabilities`;
     const agentRatingEndpoint = `${agentBaseUrl}/rating`;
 
     // Warn about common deployment misconfigurations
@@ -162,8 +166,8 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       },
     }));
 
-    // Determine welcome message based on login state
-    const welcomeMessage = welcome || BOT_CONFIG.WELCOME_MESSAGE;
+    // Determine welcome message: explicit prop > capabilities response > default
+    const welcomeMessage = welcome || capabilities?.welcome_message || BOT_CONFIG.WELCOME_MESSAGE;
 
     // Get session ID for analytics and metrics flow
     const sessionId = useMemo(() => getSessionId(), []);
@@ -284,6 +288,9 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         // Footer
         footerText="AI-powered · Privacy Notice"
         footerLink="https://support.access-ci.org/tools/access-qa-tool/privacy"
+
+        // Resource scoping
+        resourceContext={resourceContext}
 
         // Custom flows for tickets, etc.
         customFlow={customFlow}

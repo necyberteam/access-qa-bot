@@ -61,6 +61,9 @@ declare module '@snf/qa-bot-core' {
      */
     turnstileSiteKey?: string;
 
+    /** RP slug for resource-scoped queries (e.g. 'delta'). */
+    resourceContext?: string;
+
     /**
      * Custom flow steps to merge with the built-in Q&A flow.
      * Use this to add ticket creation flows, feedback flows, etc.
