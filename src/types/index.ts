@@ -27,6 +27,7 @@ export interface CapabilitiesResponse {
   is_authenticated: boolean;
   login_url?: string;
   resource_context?: { slug: string; title: string };
+  welcome_message?: string;
 }
 
 /**

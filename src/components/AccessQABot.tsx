@@ -166,8 +166,8 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       },
     }));
 
-    // Determine welcome message based on login state
-    const welcomeMessage = welcome || BOT_CONFIG.WELCOME_MESSAGE;
+    // Determine welcome message: explicit prop > capabilities response > default
+    const welcomeMessage = welcome || capabilities?.welcome_message || BOT_CONFIG.WELCOME_MESSAGE;
 
     // Get session ID for analytics and metrics flow
     const sessionId = useMemo(() => getSessionId(), []);
