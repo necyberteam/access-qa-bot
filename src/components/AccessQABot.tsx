@@ -84,20 +84,6 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       injectShadowDomStyles(containerRef.current);
     }, []);
 
-    // PROBE: distinct mount-time marker so the local-link chain can be
-    // sanity-checked from the browser console. Enable with:
-    //   localStorage.setItem('QA_BOT_DEBUG', 'true'); location.reload();
-    // Remove this entire useEffect before publishing.
-    useEffect(() => {
-      if (typeof localStorage !== 'undefined' && localStorage.getItem('QA_BOT_DEBUG') === 'true') {
-        console.log(
-          '%c ACCESS QA Bot %c LOCAL LINK v3.6.0-local-link.1 ',
-          'background: #1a5b6e; color: white; padding: 2px 6px; border-radius: 3px 0 0 3px; font-weight: bold;',
-          'background: #107180; color: white; padding: 2px 6px; border-radius: 0 3px 3px 0;'
-        );
-      }
-    }, []);
-
     // Keep form context in sync for flow utilities
     useEffect(() => {
       setCurrentFormContext({
