@@ -1,45 +1,63 @@
 /**
- * Main Menu Flow
+ * Main Menu Flow — static buttons for non-agentic mode.
  *
- * Entry point for the conversation — shows a single "Show my options"
- * discovery button. The agent returns a rich list of example queries
- * when clicked.
+ * The previous dynamic capabilities-driven version (single "Show my options"
+ * button that called the agent's /capabilities endpoint) is preserved in git
+ * history at v3.5.0:src/flows/main-menu-flow.ts. Restore it when re-enabling
+ * the agent.
  */
 
+import type { TicketFormData } from '../utils/flow-context';
 import type { TrackEventFn } from '../utils/analytics';
 
 interface FlowParams {
   welcome: string;
-  isLoggedIn: boolean;
+  setTicketForm: (form: TicketFormData) => void;
   trackEvent: TrackEventFn;
 }
 
 /**
- * Creates the main menu conversation flow
+ * Creates the main menu conversation flow.
+ *
+ * Login gating for the Q&A path happens downstream in qa-bot-core's qa_loop
+ * step (via isLoggedIn + allowAnonAccess passed to QABot), so we don't need
+ * isLoggedIn here.
  */
 export function createMainMenuFlow({
   welcome,
+  setTicketForm,
   trackEvent,
 }: FlowParams) {
   return {
     start: {
       message: welcome,
       renderHtml: ["BOT"],
-      options: ['Show my options'],
-      // Typing is enabled from the start — chatDisabled is NOT set here.
-      // Users can type a question OR click a button.
+      options: [
+        'Ask a question',
+        'Open a help ticket',
+        'Report a security issue',
+        'Ask about metrics',
+      ],
       chatDisabled: false,
       path: (chatState: { userInput: string }) => {
-        // Track menu selection
-        trackEvent({
-          type: 'chatbot_menu_selected',
-          selection: chatState.userInput,
-        });
+        const selection = chatState.userInput;
+        trackEvent({ type: 'chatbot_menu_selected', selection });
 
-        // All selections go to qa_loop — the agent handles routing
-        // via classification (domain agents for tickets/announcements,
-        // RAG+tools for everything else).
-        return 'qa_loop';
+        switch (selection) {
+          case 'Open a help ticket':
+            // Reset any prior form state so the ticket flow starts clean.
+            setTicketForm({});
+            return 'help_ticket';
+          case 'Report a security issue':
+            setTicketForm({});
+            trackEvent({ type: 'chatbot_security_started' });
+            return 'security_incident';
+          case 'Ask about metrics':
+            return 'metrics_intro';
+          default:
+            // 'Ask a question' (or any free-text input) → Q&A loop
+            return 'qa_loop';
+        }
       },
     },
   };
