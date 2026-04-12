@@ -68,9 +68,10 @@ export interface AccessQABotProps {
   defaultOpen?: boolean;        // Initial open state
 
   // Endpoint overrides (default to API_CONFIG constants)
-  qaEndpoint?: string;          // Override Q&A API endpoint (UKY RAG)
+  qaEndpoint?: string;          // Override Q&A API endpoint (qa-bot-proxy in non-agentic mode)
   ratingEndpoint?: string;      // Override UKY RAG rating endpoint
-  agentEndpoint?: string;       // Override access-agent base URL (e.g., http://localhost:8000/api/v1)
+  agentEndpoint?: string;       // Override access-agent base URL (only used when agent is enabled)
+  backendId?: string;           // Backend ID sent as `_backend` to qa-bot-proxy (default: 'access')
 
   // Resource scoping
   resourceContext?: string;     // RP slug for resource-scoped queries (e.g. 'delta')

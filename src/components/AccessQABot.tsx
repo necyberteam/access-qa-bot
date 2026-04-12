@@ -43,11 +43,20 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       qaEndpoint,
       ratingEndpoint,
       agentEndpoint,
+      backendId,
       // Resource scoping
       resourceContext,
       // Analytics
       onAnalyticsEvent,
     } = props;
+
+    // Non-agentic mode: Q&A goes through qa-bot-proxy → UKY RAG directly,
+    // and the agent's /capabilities + /capabilities/personalized endpoints
+    // are never called. AGENT_ENABLED is baked at this library's publish
+    // time (Vite env), so this is effectively a constant — flipping it
+    // requires republishing.
+    const agentEnabled = API_CONFIG.AGENT_ENABLED;
+    const effectiveBackendId = backendId || API_CONFIG.BACKEND_ID;
 
     const botRef = useRef<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -55,9 +64,13 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
     // Ticket form state - managed here to persist across flow steps
     const [ticketForm, setTicketForm] = useState<TicketFormData>({});
 
-    // Capabilities state - fetched from the agent on mount.
+    // Capabilities state — fetched from the agent when agent mode is enabled.
+    // In non-agentic mode we initialize with an empty default so the loading
+    // gate below passes immediately and no fetch is ever made.
     // null = still loading, object = loaded (even if empty categories on error)
-    const [capabilities, setCapabilities] = useState<CapabilitiesResponse | null>(null);
+    const [capabilities, setCapabilities] = useState<CapabilitiesResponse | null>(
+      () => (agentEnabled ? null : { categories: [], is_authenticated: false })
+    );
 
     // User info from props
     const userInfo: UserInfo = useMemo(() => ({
@@ -88,7 +101,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
     // Warn about common deployment misconfigurations
     useEffect(() => {
-      if (agentBaseUrl.includes('localhost') && !window.location.hostname.includes('localhost')) {
+      if (agentEnabled && agentBaseUrl.includes('localhost') && !window.location.hostname.includes('localhost')) {
         console.warn(
           '[AccessQABot] VITE_AGENT_ENDPOINT not set — agent requests will go to localhost. ' +
           'Set VITE_AGENT_ENDPOINT in your environment.'
@@ -100,10 +113,17 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
           'Set VITE_TURNSTILE_SITE_KEY for bot protection, or disable VITE_ALLOW_ANON_ACCESS.'
         );
       }
-    }, [agentBaseUrl]);
+    }, [agentBaseUrl, agentEnabled]);
 
-    // Fetch capabilities on mount (and when auth state changes)
+    // Fetch capabilities on mount (and when auth state changes).
+    // Only runs in agent mode — in non-agentic mode, capabilities is
+    // initialized to a default and no fetch is ever made.
+    // REACTIVATION: when the agent is re-approved, set
+    // VITE_AGENT_ENABLED=true (or flip the AGENT_ENABLED default in
+    // constants.ts) and republish — this effect comes back to life.
     useEffect(() => {
+      if (!agentEnabled) return;
+
       let cancelled = false;
 
       async function fetchCapabilities() {
@@ -129,10 +149,13 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
       fetchCapabilities();
       return () => { cancelled = true; };
-    }, [capabilitiesEndpoint, isLoggedIn]);
+    }, [agentEnabled, capabilitiesEndpoint, isLoggedIn]);
 
-    // Lazy-load personalized context for authenticated users (F.4 will use this)
+    // Lazy-load personalized context for authenticated users (F.4 will use this).
+    // Agent-only — skipped entirely in non-agentic mode.
+    // REACTIVATION: re-enabled automatically when AGENT_ENABLED flips to true.
     useEffect(() => {
+      if (!agentEnabled) return;
       if (!isLoggedIn) return;
 
       let cancelled = false;
@@ -157,7 +180,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
       fetchPersonalized();
       return () => { cancelled = true; };
-    }, [agentBaseUrl, isLoggedIn]);
+    }, [agentEnabled, agentBaseUrl, isLoggedIn]);
 
     // Expose addMessage method via ref (maintains old API)
     useImperativeHandle(ref, () => ({
@@ -198,10 +221,13 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
     // Build custom flow by combining main menu + all specialized flows
     const customFlow = useMemo(() => {
-      // Main menu provides top-level navigation from dynamic capabilities
+      // Main menu provides top-level navigation. In non-agentic mode this
+      // is a static 4-button menu (Ask / Ticket / Security / Metrics) — see
+      // main-menu-flow.ts. setTicketForm is needed so the ticket and
+      // security branches can reset form state on entry.
       const mainMenuFlow = createMainMenuFlow({
         welcome: welcomeMessage,
-        isLoggedIn,
+        setTicketForm,
         trackEvent,
       });
 
@@ -265,8 +291,13 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         apiKey={apiKey}
         qaEndpoint={qaEndpoint || API_CONFIG.QA_ENDPOINT}
         ratingEndpoint={ratingEndpoint || API_CONFIG.RATING_ENDPOINT}
-        capabilitiesEndpoint={capabilitiesEndpoint}
-        agentRatingEndpoint={agentRatingEndpoint}
+        backendId={effectiveBackendId}
+        // Agent-only endpoints — only forwarded when agent mode is enabled,
+        // so qa-bot-core never makes capabilities or agent-rating requests
+        // in non-agentic mode.
+        // REACTIVATION: AGENT_ENABLED=true → these props start flowing again,
+        // and the gated useEffects above resume populating `capabilities`.
+        {...(agentEnabled ? { capabilitiesEndpoint, agentRatingEndpoint } : {})}
 
         // Branding
         botName={BOT_CONFIG.BOT_NAME}

@@ -65,6 +65,15 @@ declare module '@snf/qa-bot-core' {
     resourceContext?: string;
 
     /**
+     * Backend identifier for proxy-based deployments.
+     * When using a Turnstile-validating proxy, set `qaEndpoint` to the proxy
+     * URL and `backendId` to the server-side backend identifier (e.g. "access").
+     * The proxy resolves this ID to the actual backend URL via its
+     * ALLOWED_BACKENDS env var. Omit for direct backend calls.
+     */
+    backendId?: string;
+
+    /**
      * Custom flow steps to merge with the built-in Q&A flow.
      * Use this to add ticket creation flows, feedback flows, etc.
      */

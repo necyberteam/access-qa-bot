@@ -1,21 +1,33 @@
 // Environment configuration
 export const API_CONFIG = {
-  // Q&A API endpoints (UKY RAG)
-  QA_ENDPOINT: import.meta.env.VITE_API_ENDPOINT || 'https://access-ai-grace1-external.ccs.uky.edu/access/chat/api/',
+  // Q&A goes through qa-bot-proxy (Turnstile-protected) to UKY RAG.
+  // To bypass the proxy (local dev), set VITE_API_ENDPOINT directly.
+  QA_ENDPOINT: import.meta.env.VITE_API_ENDPOINT || 'https://qa-bot-proxy.netlify.app/api/chat',
   RATING_ENDPOINT: import.meta.env.VITE_RATING_ENDPOINT || 'https://access-ai-grace1-external.ccs.uky.edu/access/chat/rating/',
 
-  // Access-agent endpoints (capabilities, agent ratings)
-  // VITE_AGENT_ENDPOINT must be set in production — localhost default is for local dev only.
+  // Backend ID sent as `_backend` in the request body so qa-bot-proxy can
+  // route to the correct upstream (defined in its ALLOWED_BACKENDS env var).
+  BACKEND_ID: import.meta.env.VITE_BACKEND_ID || 'access',
+
+  // Access-agent endpoints — disabled in non-agentic mode.
+  // REACTIVATION: republish access-qa-bot with VITE_AGENT_ENABLED=true and
+  // VITE_AGENT_ENDPOINT/VITE_API_ENDPOINT pointing at the agent. (Vite bakes
+  // VITE_* values at this library's publish time, so flipping them requires a
+  // republish — they are NOT runtime env vars in the consuming app.)
+  // The gated useEffects in AccessQABot.tsx and the conditional QABot prop
+  // spread come back to life automatically when this is true. Search the
+  // codebase for `REACTIVATION:` to see all the affected sites.
+  AGENT_ENABLED: import.meta.env.VITE_AGENT_ENABLED === 'true',
   AGENT_ENDPOINT: import.meta.env.VITE_AGENT_ENDPOINT || 'http://localhost:8000/api/v1',
   get CAPABILITIES_ENDPOINT() { return `${this.AGENT_ENDPOINT}/capabilities`; },
   get AGENT_RATING_ENDPOINT() { return `${this.AGENT_ENDPOINT}/rating`; },
 
-  // Metrics/XDMoD API endpoints
+  // Metrics/XDMoD API endpoints (unchanged — direct to UKY)
   METRICS_API_ENDPOINT: import.meta.env.VITE_METRICS_API_ENDPOINT || 'https://access-ai-grace1-external.ccs.uky.edu/access/xdmod/chat/api/',
   METRICS_RATING_ENDPOINT: import.meta.env.VITE_METRICS_RATING_ENDPOINT || 'https://access-ai-grace1-external.ccs.uky.edu/access/xdmod/chat/rating/',
   METRICS_QUESTIONS_URL: 'https://metrics.access-ci.org/qa_bot_faq',
 
-  // Netlify functions for JIRA/JSM
+  // Netlify functions for JIRA/JSM (unchanged)
   NETLIFY_BASE_URL: import.meta.env.VITE_NETLIFY_BASE_URL || 'https://access-jsm-api.netlify.app',
 
   // API key (can be overridden via prop)
@@ -34,7 +46,7 @@ export const API_CONFIG = {
 export const BOT_CONFIG = {
   BOT_NAME: 'ACCESS Q&A',
   LOGO: 'https://support.access-ci.org/themes/contrib/asp-theme/images/icons/ACCESS-arrrow.svg',
-  WELCOME_MESSAGE: 'Hello! I can answer questions about ACCESS resources, allocations, software, system status, events, and more. Click <strong>Show my options</strong> to see example queries, or just type your question.\n\n<em>This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.</em> <a href="https://support.access-ci.org/tools/access-qa-tool/privacy">Privacy Notice</a>',
+  WELCOME_MESSAGE: 'Hello! I can answer questions about ACCESS resources, allocations, and more. Choose an option below or just type your question.\n\n<em>This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.</em> <a href="https://support.access-ci.org/tools/access-qa-tool/privacy">Privacy Notice</a>',
   LOGIN_URL: '/login',
   PRIMARY_COLOR: '#1a5b6e',
   SECONDARY_COLOR: '#107180',
