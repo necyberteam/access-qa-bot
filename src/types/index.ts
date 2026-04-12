@@ -71,7 +71,7 @@ export interface AccessQABotProps {
   qaEndpoint?: string;          // Override Q&A API endpoint (qa-bot-proxy in non-agentic mode)
   ratingEndpoint?: string;      // Override UKY RAG rating endpoint
   agentEndpoint?: string;       // Override access-agent base URL (only used when agent is enabled)
-  backendId?: string;           // Backend ID sent as `_backend` to qa-bot-proxy (default: 'uky')
+  backendId?: string;           // Backend ID sent as `_backend` to qa-bot-proxy (default: 'access')
 
   // Resource scoping
   resourceContext?: string;     // RP slug for resource-scoped queries (e.g. 'delta')
