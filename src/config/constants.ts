@@ -7,7 +7,7 @@ export const API_CONFIG = {
 
   // Backend ID sent as `_backend` in the request body so qa-bot-proxy can
   // route to the correct upstream (defined in its ALLOWED_BACKENDS env var).
-  BACKEND_ID: import.meta.env.VITE_BACKEND_ID || 'uky',
+  BACKEND_ID: import.meta.env.VITE_BACKEND_ID || 'access',
 
   // Access-agent endpoints — disabled in non-agentic mode.
   // REACTIVATION: republish access-qa-bot with VITE_AGENT_ENABLED=true and
@@ -46,7 +46,7 @@ export const API_CONFIG = {
 export const BOT_CONFIG = {
   BOT_NAME: 'ACCESS Q&A',
   LOGO: 'https://support.access-ci.org/themes/contrib/asp-theme/images/icons/ACCESS-arrrow.svg',
-  WELCOME_MESSAGE: 'Hello! I can answer questions about ACCESS resources, allocations, software, system status, events, and more. Click <strong>Show my options</strong> to see example queries, or just type your question.\n\n<em>This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.</em> <a href="https://support.access-ci.org/tools/access-qa-tool/privacy">Privacy Notice</a>',
+  WELCOME_MESSAGE: 'Hello! I can answer questions about ACCESS resources, allocations, and more. Choose an option below or just type your question.\n\n<em>This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.</em> <a href="https://support.access-ci.org/tools/access-qa-tool/privacy">Privacy Notice</a>',
   LOGIN_URL: '/login',
   PRIMARY_COLOR: '#1a5b6e',
   SECONDARY_COLOR: '#107180',
