@@ -140,15 +140,34 @@
   border: 1px solid #d0d0d0 !important;
 }
 
-/* Links in bot messages should be white on dark background */
-.rcb-bot-message a,
+/* General chat-window links (footer, welcome preamble, etc.):
+   ACCESS style is bold underlined black, teal on hover without underline.
+   Exempt login-button anchors (styled as buttons via inline style).
+   Bot-message bubble links get overridden by the more-specific rule below. */
+.rcb-chat-window a:not(.qa-bot-login-button),
+.rcb-chat-window a:not(.qa-bot-login-button):link,
+.rcb-chat-window a:not(.qa-bot-login-button):visited {
+  color: #000000 !important;
+  font-weight: 700 !important;
+  text-decoration: underline !important;
+}
+
+.rcb-chat-window a:not(.qa-bot-login-button):hover {
+  color: #1a5b6e !important;
+  text-decoration: none !important;
+}
+
+/* Links inside bot-message bubbles are an exception: the bubble has a teal
+   background so white text reads; the general rule above is overridden here. */
+.rcb-chat-window .rcb-bot-message a,
 .rcb-chat-window .rcb-bot-message a:link,
 .rcb-chat-window .rcb-bot-message a:visited {
   color: #ffffff !important;
   text-decoration: underline !important;
 }
 
-.rcb-bot-message a:hover {
+.rcb-chat-window .rcb-bot-message a:hover {
   opacity: 0.85;
   text-decoration: underline !important;
+  color: #ffffff !important;
 }

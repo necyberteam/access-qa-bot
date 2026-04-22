@@ -5,6 +5,8 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AccessQABot } from './components/AccessQABot';
+import '@snf/qa-bot-core/styles';
+import './styles/chatbot.css';
 import './styles.css';
 
 function App() {

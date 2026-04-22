@@ -3,6 +3,10 @@
  * React component usage
  */
 
+// qa-bot-core's extracted stylesheet must be imported explicitly (>=0.2.39);
+// its ESM/CJS bundle no longer auto-injects styles. Import it first so that
+// access-qa-bot's own overrides in chatbot.css take precedence.
+import '@snf/qa-bot-core/styles';
 import './styles/chatbot.css';
 
 export { AccessQABot as QABot, AccessQABot } from './components/AccessQABot';
