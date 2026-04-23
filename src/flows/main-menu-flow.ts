@@ -44,6 +44,12 @@ export function createMainMenuFlow({
         trackEvent({ type: 'chatbot_menu_selected', selection });
 
         switch (selection) {
+          case 'Ask a question':
+            // Explicit option click: route to a prompt state that waits for
+            // the user to type their real question. Routing directly to
+            // qa_loop would pass "Ask a question" as userInput and it would
+            // be sent to the Q&A backend as the user's literal question.
+            return 'qa_prompt';
           case 'Open a help ticket':
             // Reset any prior form state so the ticket flow starts clean.
             setTicketForm({});
@@ -55,10 +61,20 @@ export function createMainMenuFlow({
           case 'Ask about metrics':
             return 'metrics_intro';
           default:
-            // 'Ask a question' (or any free-text input) → Q&A loop
+            // Free-text input at start: user typed their question directly
+            // without clicking "Ask a question". Route into the Q&A loop
+            // and let the typed text be processed as their question.
             return 'qa_loop';
         }
       },
+    },
+    // Intermediate state between the "Ask a question" button click and the
+    // qa_loop. Does nothing except prompt the user to type their question,
+    // then hands them to qa_loop where their typed text is processed.
+    qa_prompt: {
+      message: 'What would you like to ask?',
+      chatDisabled: false,
+      path: 'qa_loop',
     },
   };
 }
