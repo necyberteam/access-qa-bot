@@ -1,10 +1,14 @@
 /**
- * Main Menu Flow — static buttons for non-agentic mode.
+ * Main Menu Flow — agentic mode.
  *
- * The previous dynamic capabilities-driven version (single "Show my options"
- * button that called the agent's /capabilities endpoint) is preserved in git
- * history at v3.5.0:src/flows/main-menu-flow.ts. Restore it when re-enabling
- * the agent.
+ * Single "Show my options" discovery button. Everything the user types or
+ * clicks routes to qa_loop, where the agent handles routing (tickets,
+ * announcements, RAG + tools) via its own classification. The agent's
+ * /capabilities response surfaces the rich option list.
+ *
+ * The previous static 4-button menu (Ask / Ticket / Security / Metrics),
+ * used while the agent was disabled, is preserved in git history at
+ * v3.7.4:src/flows/main-menu-flow.ts.
  */
 
 import type { TicketFormData } from '../utils/flow-context';
@@ -12,7 +16,9 @@ import type { TrackEventFn } from '../utils/analytics';
 
 interface FlowParams {
   welcome: string;
-  setTicketForm: (form: TicketFormData) => void;
+  // Accepted for call-site compatibility; the agentic menu doesn't use it
+  // (ticket state is reset by the agent-driven flows, not the menu).
+  setTicketForm?: (form: TicketFormData) => void;
   trackEvent: TrackEventFn;
 }
 
@@ -25,56 +31,21 @@ interface FlowParams {
  */
 export function createMainMenuFlow({
   welcome,
-  setTicketForm,
   trackEvent,
 }: FlowParams) {
   return {
     start: {
       message: welcome,
       renderHtml: ["BOT"],
-      options: [
-        'Ask a question',
-        'Open a help ticket',
-        'Report a security issue',
-        'Ask about metrics',
-      ],
+      options: ['Show my options'],
+      // Typing is enabled from the start — users can type a question OR
+      // click the button. chatDisabled is explicitly false.
       chatDisabled: false,
       path: (chatState: { userInput: string }) => {
-        const selection = chatState.userInput;
-        trackEvent({ type: 'chatbot_menu_selected', selection });
-
-        switch (selection) {
-          case 'Ask a question':
-            // Explicit option click: route to a prompt state that waits for
-            // the user to type their real question. Routing directly to
-            // qa_loop would pass "Ask a question" as userInput and it would
-            // be sent to the Q&A backend as the user's literal question.
-            return 'qa_prompt';
-          case 'Open a help ticket':
-            // Reset any prior form state so the ticket flow starts clean.
-            setTicketForm({});
-            return 'help_ticket';
-          case 'Report a security issue':
-            setTicketForm({});
-            trackEvent({ type: 'chatbot_security_started' });
-            return 'security_incident';
-          case 'Ask about metrics':
-            return 'metrics_intro';
-          default:
-            // Free-text input at start: user typed their question directly
-            // without clicking "Ask a question". Route into the Q&A loop
-            // and let the typed text be processed as their question.
-            return 'qa_loop';
-        }
+        trackEvent({ type: 'chatbot_menu_selected', selection: chatState.userInput });
+        // All selections go to qa_loop — the agent handles routing.
+        return 'qa_loop';
       },
-    },
-    // Intermediate state between the "Ask a question" button click and the
-    // qa_loop. Does nothing except prompt the user to type their question,
-    // then hands them to qa_loop where their typed text is processed.
-    qa_prompt: {
-      message: 'What would you like to ask?',
-      chatDisabled: false,
-      path: 'qa_loop',
     },
   };
 }
