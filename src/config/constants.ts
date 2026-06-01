@@ -9,15 +9,8 @@ export const API_CONFIG = {
   // route to the correct upstream (defined in its ALLOWED_BACKENDS env var).
   BACKEND_ID: import.meta.env.VITE_BACKEND_ID || 'access',
 
-  // Access-agent endpoints — disabled in non-agentic mode.
-  // REACTIVATION: republish access-qa-bot with VITE_AGENT_ENABLED=true and
-  // VITE_AGENT_ENDPOINT/VITE_API_ENDPOINT pointing at the agent. (Vite bakes
-  // VITE_* values at this library's publish time, so flipping them requires a
-  // republish — they are NOT runtime env vars in the consuming app.)
-  // The gated useEffects in AccessQABot.tsx and the conditional QABot prop
-  // spread come back to life automatically when this is true. Search the
-  // codebase for `REACTIVATION:` to see all the affected sites.
-  AGENT_ENABLED: import.meta.env.VITE_AGENT_ENABLED === 'true',
+  // Access-agent endpoints. Always active — capabilities fetch failures
+  // degrade gracefully via the catch at AccessQABot.tsx:143.
   AGENT_ENDPOINT: import.meta.env.VITE_AGENT_ENDPOINT || 'http://localhost:8000/api/v1',
   get CAPABILITIES_ENDPOINT() { return `${this.AGENT_ENDPOINT}/capabilities`; },
   get AGENT_RATING_ENDPOINT() { return `${this.AGENT_ENDPOINT}/rating`; },
