@@ -42,16 +42,33 @@ export const API_CONFIG = {
   ALLOW_ANON_ACCESS: import.meta.env.VITE_ALLOW_ANON_ACCESS === 'true',
 };
 
+// The AI-disclaimer + privacy note appended to every welcome message.
+const WELCOME_NOTES =
+  '<em>AI-powered responses may not always be accurate. Don\'t share passwords or secrets.</em> <a href="https://support.access-ci.org/tools/access-qa-tool/privacy">Privacy Notice</a>';
+
 // Bot configuration defaults
 export const BOT_CONFIG = {
   BOT_NAME: 'ACCESS Q&A',
   LOGO: 'https://support.access-ci.org/themes/contrib/asp-theme/images/icons/ACCESS-arrrow.svg',
-  WELCOME_MESSAGE: 'Hello! I can answer questions about ACCESS resources, allocations, and more. Choose an option below or just type your question.\n\n<em>This assistant is powered by AI. Responses may not always be accurate. Do not share passwords or secrets.</em> <a href="https://support.access-ci.org/tools/access-qa-tool/privacy">Privacy Notice</a>',
+  WELCOME_MESSAGE: `Hello! Ask me about ACCESS resources, allocations, and more.\n\n${WELCOME_NOTES}`,
   LOGIN_URL: '/login',
   PRIMARY_COLOR: '#1a5b6e',
   SECONDARY_COLOR: '#107180',
   TOOLTIP: 'Ask me about ACCESS! 😊',
 };
+
+/**
+ * Welcome message for a resource-scoped chatbot (embedded on a resource's docs
+ * page). The query is scoped to the resource via rp_name regardless of wording,
+ * so the welcome intentionally stays generic ("this resource") rather than
+ * naming it: the non-agent path only has the slug, and mapping slugs to display
+ * names would need a maintained list + an npm release whenever resources change.
+ * The agent path supplies a properly-titled welcome via /capabilities; this is a
+ * short-term stand-in until the agent takes over.
+ */
+export function scopedWelcomeMessage(): string {
+  return `Hello! Ask me about this resource — software, storage, running jobs, logging in, and more.\n\n${WELCOME_NOTES}`;
+}
 
 // Session storage keys
 export const STORAGE_KEYS = {

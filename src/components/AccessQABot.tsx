@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle, useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import { QABot, applyFlowSettings } from '@snf/qa-bot-core';
 import type { AccessQABotProps, AccessQABotRef, CapabilitiesResponse } from '../types';
-import { API_CONFIG, BOT_CONFIG } from '../config/constants';
+import { API_CONFIG, BOT_CONFIG, scopedWelcomeMessage } from '../config/constants';
 import { createMainMenuFlow, createTicketFlow, createSecurityFlow, createMetricsFlow } from '../flows';
 import { setCurrentFormContext, type TicketFormData, type UserInfo } from '../utils/flow-context';
 import { getSessionId } from '../utils/session';
@@ -189,8 +189,15 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       },
     }));
 
-    // Determine welcome message: explicit prop > capabilities response > default
-    const welcomeMessage = welcome || capabilities?.welcome_message || BOT_CONFIG.WELCOME_MESSAGE;
+    // Determine welcome message:
+    //   explicit prop > agent's scoped capabilities welcome > resource-scoped
+    //   default (when embedded on a resource page) > generic default.
+    // The resource-scoped default keeps the bot resource-framed even on the
+    // non-agent path, where no capabilities response is fetched.
+    const welcomeMessage =
+      welcome ||
+      capabilities?.welcome_message ||
+      (resourceContext ? scopedWelcomeMessage() : BOT_CONFIG.WELCOME_MESSAGE);
 
     // Get session ID for analytics and metrics flow
     const sessionId = useMemo(() => getSessionId(), []);
