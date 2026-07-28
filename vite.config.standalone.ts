@@ -16,7 +16,15 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Bundle everything, no externals
-        globals: {}
+        globals: {},
+        // The standalone build injects its CSS at runtime, so its emitted
+        // stylesheet is an unused byproduct. Give it a distinct name so it
+        // can't overwrite dist/style.css from the library build (which
+        // consumers like access-ci-ui import directly).
+        assetFileNames: (asset) =>
+          asset.name === 'style.css'
+            ? 'access-qa-bot.standalone.css'
+            : '[name][extname]',
       }
     },
     sourcemap: true
