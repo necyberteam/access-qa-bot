@@ -74,7 +74,13 @@ export interface AccessQABotProps {
   backendId?: string;           // Backend ID sent as `_backend` to qa-bot-proxy (default: 'access')
 
   // Resource scoping
+  scopeSlug?: string;           // Slug of what the bot is scoped to (e.g. 'delta'); drives capabilities + scoped mode
+  /** @deprecated use scopeSlug — kept so existing embedders (access-ci-ui) keep working */
   resourceContext?: string;     // RP slug for resource-scoped queries (e.g. 'delta')
+
+  // Header / input / greeting overrides (embedder-supplied)
+  headerTitle?: string;         // Full header string, e.g. "Ask about Delta" (falls back to BOT_NAME)
+  inputPlaceholder?: string;    // Chat input placeholder (falls back to core default)
 
   // Callbacks
   onClose?: () => void;         // Callback when chat closes

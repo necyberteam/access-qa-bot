@@ -14,6 +14,11 @@ interface FlowParams {
   welcome: string;
   setTicketForm: (form: TicketFormData) => void;
   trackEvent: TrackEventFn;
+  /**
+   * Scoped mode (resource-scoped embed): suppress the greeting and the
+   * top-level menu, opening straight into the Q&A input box.
+   */
+  scoped?: boolean;
 }
 
 /**
@@ -27,9 +32,21 @@ export function createMainMenuFlow({
   welcome,
   setTicketForm,
   trackEvent,
+  scoped = false,
 }: FlowParams) {
   return {
-    start: {
+    start: scoped
+      ? {
+          // Resource-scoped embed: no greeting, no menu — auto-advance straight
+          // into the Q&A loop so the window opens to just the input box.
+          // transition + static-string path is qa-bot-core's own "land in
+          // qa_loop" pattern; a path FUNCTION would only fire on user input.
+          message: '',
+          transition: { duration: 0 },
+          chatDisabled: false,
+          path: 'qa_loop',
+        }
+      : {
       message: welcome,
       renderHtml: ["BOT"],
       options: [

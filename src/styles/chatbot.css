@@ -35,9 +35,70 @@
 /* Window dimensions - ACCESS wants larger than default 375x550 */
 .rcb-chat-window {
   width: 550px !important;
-  height: 800px !important;
-  max-height: 80vh !important;
   max-width: 100%;
+}
+
+/*
+ * Content-driven height for the EMBEDDED (resource-scoped) bot ONLY. Editors
+ * asked that the embedded bot not take up space when it has no greeting/menu,
+ * so it opens short and grows with the conversation. The FLOATING bot keeps its
+ * normal height (it always has a greeting/menu, so it should not shrink).
+ * Scoped under .embedded-qa-bot — the class qa-bot-core adds when embedded.
+ *
+ * fit-content (NOT auto): the window is position:fixed with a max-height, and
+ * height:auto on such a flex container resolves to the max-height rather than
+ * to content. fit-content sizes to content, then the message body scrolls once
+ * the window reaches max-height. The .embedded-qa-bot prefix also raises the
+ * specificity above qa-bot-core's bare `.rcb-chat-window { height: 800px }`, so
+ * this wins regardless of stylesheet import order.
+ */
+.embedded-qa-bot .rcb-chat-window {
+  height: fit-content !important;
+  max-height: 80vh !important;
+}
+
+/*
+ * Content-sized body that grows then scrolls, for the fit-content window.
+ *
+ * The window is height:fit-content (opens short). react-chatbotify's default
+ * body is height:100% + flex, which inside a fit-content window resolves to
+ * ~0 visible height and hides messages. So size the body to its CONTENT
+ * (flex: 0 1 auto + height: auto, NOT flex-grow), capped with a max-height so
+ * it scrolls once the conversation is long.
+ *
+ * padding-top is REQUIRED: with the body content-sized and scrolled to the
+ * newest message, the top of the first message otherwise clips ~19px under the
+ * header (verified live). A top padding gives the scroll content the breathing
+ * room react-chatbotify's default padding provided before we overrode it, so
+ * the first message stays fully visible. A small bottom padding keeps the last
+ * message off the input edge without re-introducing the empty-state band.
+ *
+ * max-height is 80vh minus the header/input/footer chrome (~200px) so the body
+ * plus chrome never exceeds the window's own 80vh cap.
+ */
+.embedded-qa-bot .rcb-chat-body-container {
+  flex: 0 1 auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: calc(80vh - 200px) !important;
+  overflow-y: auto !important;
+  /* No padding by default so the empty state is flush (see below). */
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/*
+ * The body is never truly :empty at rest — react-chatbotify leaves an empty
+ * .rcb-bot-message-container and a hidden prompt container in it. So padding
+ * can't collapse via :empty. Instead, apply the top/bottom padding ONLY when a
+ * real message bubble is present (:has). Result: empty state is flush (no band
+ * under the header), and once a message appears the padding returns so the
+ * first message keeps its top breathing room and doesn't clip. :has() is
+ * supported in all current browsers.
+ */
+.embedded-qa-bot .rcb-chat-body-container:has(.rcb-bot-message, .rcb-user-message) {
+  padding-top: 16px !important;
+  padding-bottom: 8px !important;
 }
 
 /* Header - centered vertically, bold text */

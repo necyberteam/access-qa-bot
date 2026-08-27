@@ -45,10 +45,17 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       agentEndpoint,
       backendId,
       // Resource scoping
+      scopeSlug,
       resourceContext,
+      // Header / input / greeting overrides
+      headerTitle,
+      inputPlaceholder,
       // Analytics
       onAnalyticsEvent,
     } = props;
+
+    // scopeSlug is canonical; resourceContext is the deprecated alias.
+    const scope = scopeSlug ?? resourceContext;
 
     // Non-agentic mode: Q&A goes through qa-bot-proxy → UKY RAG directly,
     // and the agent's /capabilities + /capabilities/personalized endpoints
@@ -94,8 +101,8 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
 
     // Derive agent API URLs
     const agentBaseUrl = agentEndpoint || API_CONFIG.AGENT_ENDPOINT;
-    const capabilitiesEndpoint = resourceContext
-      ? `${agentBaseUrl}/capabilities?resource_context=${encodeURIComponent(resourceContext)}`
+    const capabilitiesEndpoint = scope
+      ? `${agentBaseUrl}/capabilities?resource_context=${encodeURIComponent(scope)}`
       : `${agentBaseUrl}/capabilities`;
     const agentRatingEndpoint = `${agentBaseUrl}/rating`;
 
@@ -197,7 +204,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
     const welcomeMessage =
       welcome ||
       capabilities?.welcome_message ||
-      (resourceContext ? scopedWelcomeMessage() : BOT_CONFIG.WELCOME_MESSAGE);
+      (scope ? scopedWelcomeMessage() : BOT_CONFIG.WELCOME_MESSAGE);
 
     // Get session ID for analytics and metrics flow
     const sessionId = useMemo(() => getSessionId(), []);
@@ -232,10 +239,17 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       // is a static 4-button menu (Ask / Ticket / Security / Metrics) — see
       // main-menu-flow.ts. setTicketForm is needed so the ticket and
       // security branches can reset form state on entry.
+      // Scoped mode (suppressed greeting/menu, opens straight to input) is for
+      // the EMBEDDED resource bot only. The floating bot always keeps its
+      // greeting + menu, so it must have content — even if given a scopeSlug.
+      const scopedMode = Boolean(scope) && embedded;
       const mainMenuFlow = createMainMenuFlow({
-        welcome: welcomeMessage,
+        // In scoped mode the greeting is suppressed, so the welcome message is
+        // irrelevant; pass empty to avoid a dangling pre-computed greeting.
+        welcome: scopedMode ? '' : welcomeMessage,
         setTicketForm,
         trackEvent,
+        scoped: scopedMode,
       });
 
       // Ticket flows handle ticket creation
@@ -272,7 +286,7 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
       // Auto-set chatDisabled based on whether step has options/checkboxes
       // BUT the start step explicitly sets chatDisabled: false to allow typing
       return applyFlowSettings(rawFlow, { disableOnOptions: true });
-    }, [welcomeMessage, userInfo, sessionId, apiKey, isLoggedIn, trackEvent, capabilities]);
+    }, [welcomeMessage, userInfo, sessionId, apiKey, isLoggedIn, trackEvent, capabilities, scope, embedded]);
 
     // Wait for capabilities to load before rendering — the start step's
     // options are built from this data and react-chatbotify won't re-render
@@ -307,11 +321,12 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         {...(agentEnabled ? { capabilitiesEndpoint, agentRatingEndpoint } : {})}
 
         // Branding
-        botName={BOT_CONFIG.BOT_NAME}
+        botName={headerTitle || BOT_CONFIG.BOT_NAME}
         logo={BOT_CONFIG.LOGO}
         primaryColor={BOT_CONFIG.PRIMARY_COLOR}
         secondaryColor={BOT_CONFIG.SECONDARY_COLOR}
         welcomeMessage={welcomeMessage}
+        placeholder={inputPlaceholder || undefined}
         tooltipText={BOT_CONFIG.TOOLTIP}
 
         // Turnstile bot protection (silent pre-verify when site key configured)
@@ -327,8 +342,8 @@ export const AccessQABot = forwardRef<AccessQABotRef, AccessQABotProps>(
         footerText="AI-powered · Privacy Notice"
         footerLink="https://support.access-ci.org/tools/access-qa-tool/privacy"
 
-        // Resource scoping
-        resourceContext={resourceContext}
+        // Resource scoping (core prop name unchanged; value is the resolved scope)
+        resourceContext={scope}
 
         // Custom flows for tickets, etc.
         customFlow={customFlow}
